@@ -1,0 +1,37 @@
+{
+  "name": "SimpleSearch",
+  "lowCaseName": "simplesearch",
+  "description": "A simple search solution for MODX Revolution. Loosely based on AjaxSearch for Evolution (minus the ajax). Only searches Resources; does not search dynamic content.",
+  "author": "Sterc",
+  "version": "2.0.0-pl",
+  "package":{
+    "elements": {
+      "snippets": [{
+        "name": "SimpleSearch",
+        "properties": [{
+          "name": "tpl",
+          "desc": "simplesearch.tpl_desc",
+          "type": "textfield",
+          "options": "",
+          "value": "SearchResult",
+          "lexicon": "sisea:properties"
+        }]
+      }, {
+        "name": "SimpleSearchForm"
+      }]
+    },
+    "systemSettings": [{
+      "key": "driver_class",
+      "value": "SimpleSearchDriverBasic",
+      "area": "Drivers"
+    }, {
+      "key": "driver_class_path",
+      "area": "Drivers"
+    }, {
+      "key": "driver_db_specific",
+      "type": "combo-boolean",
+      "value": "1",
+      "area": "Drivers"
+    }]
+  }
+}
