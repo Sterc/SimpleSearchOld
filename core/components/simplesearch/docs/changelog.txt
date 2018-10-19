@@ -1,5 +1,10 @@
 Changelog for SimpleSearch.
 
+SimpleSearch 2.0.0
+========================================================================
+- Removed elasticsearch and solr driver
+- Renamed namespace sisea to simplesearch
+
 SimpleSearch 1.9.2
 ========================================================================
 - Generate extract for whole search string, not just for last part
