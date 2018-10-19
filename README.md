@@ -10,8 +10,8 @@ First of all: ALWAYS MAKE A BACKUP BEFORE UPDATING!
 Upgrading to 2.0.0 from 1.* is highly recommended, but it does introduce some risks.
 
 Important changes from 1.* to 2.0.0:
-- The namespace has been changed from `sisea` to `simplesearch`. If your using custom system settings then please migrate them.
-- The ElasticSearch and SOLR drivers have been removed.
+- The namespace has been changed from `sisea` to `simplesearch`. If you're using custom System Settings, then please migrate them.
+- The ElasticSearch and SOLR drivers have been removed, because they were in need of improvements. Future drivers should be seperate addons. Feel free to ask us for help here.
 
 ## Bugs and feature requests
-We greatly value your feedback, feature requests and bug reports. Please issue them on [Github](https://github.com/Sterc/SimpleSearch/issues/new).
+We value your feedback, feature requests and bug reports. Please issue them on [Github](https://github.com/Sterc/SimpleSearch/issues/new).
