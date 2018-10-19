@@ -292,24 +292,27 @@ END OF TERMS AND CONDITIONS',
     'readme' => '=====================
 Snippet: SimpleSearch
 =====================
-Version: 1.9.2
-Author: Sterc <modx@sterc.com> et all
+Version: 2.0.0
+Author: Sterc <modx@sterc.com>
 License: GNU GPLv2 (or later at your option)
 
 This is a simple search component. Please see the documentation at:
 http://rtfm.modx.com/display/ADDON/SimpleSearch/
 
-If you want to use the Solr driver, please refer to the docs, and make sure
-you have the Solr PECL driver installed, which can be found here:
-http://pecl.php.net/package/solr
-
-You can use the sample solr schema.xml file found at:
-- core/components/simplesearch/docs/solr.schema.xml
-Just rename it to schema.xml and place it in the proper conf/ directory.
+Bugs and feature requests
+-------------------------
+We value your feedback, feature requests and bug reports. Please issue them on GitHub (https://github.com/Sterc/SimpleSearch/issues/new).
 
 Thanks for using SimpleSearch!
 ',
     'changelog' => 'Changelog for SimpleSearch.
+
+SimpleSearch 2.0.0
+========================================================================
+- Removed elasticsearch and solr driver
+- Renamed namespace sisea to simplesearch
+- Fixed issue where boosting would only be applied to paginated results
+- Added processor for returning a search autosuggest list
 
 SimpleSearch 1.9.2
 ========================================================================
@@ -466,9 +469,9 @@ SimpleSearch 1.0.0
       'vehicle_package' => 'transport',
       'vehicle_class' => 'xPDOObjectVehicle',
       'class' => 'modNamespace',
-      'guid' => '9616be7cca8b79c0e5313d8bcffdbb29',
+      'guid' => '23aafff5581aef34b63350518cab523c',
       'native_key' => 'simplesearch',
-      'filename' => 'modNamespace/eb7ff7f8c458115c4f5938b470b8599d.vehicle',
+      'filename' => 'modNamespace/210cc1c4e022cfff4fae30b38b3dd87f.vehicle',
       'namespace' => 'simplesearch',
     ),
     1 => 
@@ -476,9 +479,9 @@ SimpleSearch 1.0.0
       'vehicle_package' => 'transport',
       'vehicle_class' => 'xPDOObjectVehicle',
       'class' => 'modSystemSetting',
-      'guid' => 'cccdeb0f7436c028ffd069c5d34f5ede',
+      'guid' => '5f6a3aea3c70329f3132dd7f9f3b484f',
       'native_key' => 'simplesearch.driver_class',
-      'filename' => 'modSystemSetting/285ccb5ff1641e6bc1ab67dd782e8a36.vehicle',
+      'filename' => 'modSystemSetting/dae7fb6b260e9f8e48514c6b5ca44c13.vehicle',
       'namespace' => 'simplesearch',
     ),
     2 => 
@@ -486,9 +489,9 @@ SimpleSearch 1.0.0
       'vehicle_package' => 'transport',
       'vehicle_class' => 'xPDOObjectVehicle',
       'class' => 'modSystemSetting',
-      'guid' => 'f0d54050cc97203dc9fb9b81d5603191',
+      'guid' => '91cbc90f805760b656bf5364ef2d822c',
       'native_key' => 'simplesearch.driver_class_path',
-      'filename' => 'modSystemSetting/0b0e8d4df4d84e68aef7818f760e61f5.vehicle',
+      'filename' => 'modSystemSetting/e044cd7728989fc5d612ac3d7c11fe47.vehicle',
       'namespace' => 'simplesearch',
     ),
     3 => 
@@ -496,19 +499,29 @@ SimpleSearch 1.0.0
       'vehicle_package' => 'transport',
       'vehicle_class' => 'xPDOObjectVehicle',
       'class' => 'modSystemSetting',
-      'guid' => 'a7523e21a512494359ad5714a13b2c53',
+      'guid' => '310599327467b6af98499923ddaaef95',
       'native_key' => 'simplesearch.driver_db_specific',
-      'filename' => 'modSystemSetting/b275a1f62c932b6b18c2e40125a9d067.vehicle',
+      'filename' => 'modSystemSetting/086aa75af6cdae4d0cba12bbc4f0fe45.vehicle',
       'namespace' => 'simplesearch',
     ),
     4 => 
     array (
       'vehicle_package' => 'transport',
       'vehicle_class' => 'xPDOObjectVehicle',
+      'class' => 'modSystemSetting',
+      'guid' => '896ea2d4d0d5a2a4d721b0a68216bd9d',
+      'native_key' => 'simplesearch.autosuggest_tv',
+      'filename' => 'modSystemSetting/61f6ed0946e4fcae704889dd35c29258.vehicle',
+      'namespace' => 'simplesearch',
+    ),
+    5 => 
+    array (
+      'vehicle_package' => 'transport',
+      'vehicle_class' => 'xPDOObjectVehicle',
       'class' => 'modCategory',
-      'guid' => 'ff91df195faefe7c2f031a8453237ffc',
+      'guid' => 'fb4e51a0b7c4bd7cd4791a924892b579',
       'native_key' => NULL,
-      'filename' => 'modCategory/25f63a8b4c179faca2fa095af91b049c.vehicle',
+      'filename' => 'modCategory/40b1415af561d66f48ac2dfa8e9da655.vehicle',
       'namespace' => 'simplesearch',
     ),
   ),
