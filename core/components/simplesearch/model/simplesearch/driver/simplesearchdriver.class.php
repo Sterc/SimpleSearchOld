@@ -86,9 +86,9 @@ abstract class SimpleSearchDriver
      */
     protected function sortResults(array $resources, array $scriptProperties) {
         /* Vars */
-        $searchStyle = $this->modx->getOption('searchStyle', $scriptProperties, 'partial');
-        $docFields = explode(',', $this->modx->getOption('docFields', $scriptProperties, 'pagetitle,longtitle,alias,description,introtext,content'));
-        $fieldPotency = array_map('trim', explode(',', $this->modx->getOption('fieldPotency', $scriptProperties,'')));
+        $searchStyle  = $this->modx->getOption('searchStyle', $scriptProperties, 'partial');
+        $docFields    = explode(',', $this->modx->getOption('docFields', $scriptProperties, 'pagetitle,longtitle,alias,description,introtext,content'));
+        $fieldPotency = array_map('trim', explode(',', $this->modx->getOption('fieldPotency', $scriptProperties, '')));
         foreach ($fieldPotency as $key => $field) {
             unset($fieldPotency[$key]);
             $arr = explode(':', $field);

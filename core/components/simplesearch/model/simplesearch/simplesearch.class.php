@@ -43,6 +43,7 @@ class SimpleSearch
             'processors_path' => $corePath . 'processors/',
             'assetsUrl'       => $assetsUrl,
         ), $config);
+
         $this->modx->lexicon->load('simplesearch:default');
     }
 
@@ -120,8 +121,8 @@ class SimpleSearch
         $driverDatabaseSpecific = $this->modx->getOption('simplesearch.driver_db_specific', $scriptProperties, true);
         if ($driverDatabaseSpecific) {
             $dbType          = $this->modx->config['dbtype'];
-            $driverClassPath = $driverClassPath.$dbType.'/';
-            $driverClassName = $driverClass.'_'.$dbType;
+            $driverClassPath = $driverClassPath . $dbType . '/';
+            $driverClassName = $driverClass . '_' . $dbType;
         } else {
             $driverClassName = $driverClass;
         }
@@ -174,7 +175,7 @@ class SimpleSearch
 
         $this->loadDriver($scriptProperties);
 
-        $this->response           = $this->driver->search($str,$scriptProperties);
+        $this->response           = $this->driver->search($str, $scriptProperties);
         $this->searchResultsCount = $this->response['total'];
         $this->docs               = $this->response['results'];
 

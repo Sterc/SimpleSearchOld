@@ -107,7 +107,7 @@ if (!empty($postHooks)) {
     $limit = !empty($facetLimit) ? $facetLimit : $perPage;
 
     $search->loadHooks('post');
-    $search->postHooks->loadMultiple($postHooks,$response['results'],
+    $search->postHooks->loadMultiple($postHooks, $response['results'],
         array(
             'hooks'   => $postHooks,
             'search'  => $searchString,

@@ -52,8 +52,13 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                 $includeTVList = explode(',', $includeTVList);
                 $includeTVList = array_map('trim', $includeTVList);
 
-                $c->leftJoin('modTemplateVar', 'TemplateVar', 'TemplateVar.id = TemplateVarResources.tmplvarid');
-                $c->where(array('TemplateVar.name:IN' => $includeTVList));
+                $c->leftJoin(
+                    'modTemplateVar',
+                    'TemplateVar',
+                    array(
+                        'TemplateVar.name:IN' => $includeTVList
+                    )
+                );
             }
         }
 
@@ -89,7 +94,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
         }
 
         /* Process conditional clauses */
-        $whereGroup=1;
+        $whereGroup = 1;
         if ($searchStyle === 'partial' || $this->modx->config['dbtype'] === 'sqlsrv') {
             $wildcard   = $matchWildcard ? '%' : '';
             $whereArray = array();
@@ -276,9 +281,10 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                 $templateVars =& $resource->getMany('TemplateVars');
                 /** @var modTemplateVar $templateVar */
                 foreach ($templateVars as $tvId => $templateVar) {
-                    $resourceArray[$tvPrefix.$templateVar->get('name')] = !empty($processTVs) ? $templateVar->renderOutput($resource->get('id')) : $templateVar->get('value');
+                    $resourceArray[$tvPrefix . $templateVar->get('name')] = !empty($processTVs) ? $templateVar->renderOutput($resource->get('id')) : $templateVar->get('value');
                 }
             }
+
             $list[] = $resourceArray;
         }
 
