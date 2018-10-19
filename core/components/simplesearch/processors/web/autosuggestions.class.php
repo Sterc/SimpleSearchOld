@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Class SimpleSearchAutoSuggestionsProcessor.
+ */
 class SimpleSearchAutoSuggestionsProcessor extends modProcessor
 {
     /**

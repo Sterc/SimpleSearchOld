@@ -5,7 +5,8 @@
  *
  * @package simplesearch
  */
-class siHooks {
+class siHooks
+{
     /**
      * @var array $errors A collection of all the processed errors so far.
      * @access public
@@ -20,18 +21,18 @@ class siHooks {
      * @var modX $modx A reference to the modX instance.
      * @access public
      */
-    public $modx = null;
+    public $modx;
     /**
      * @var SimpleSearch $search A reference to the SimpleSearch instance.
      * @access public
      */
-    public $search = null;
+    public $search;
     /**
      * @var string If a hook redirects, it needs to set this var to use proper
      * order of execution on redirects/stores
      * @access public
      */
-    public $redirectUrl = null;
+    public $redirectUrl;
 
     public $facets = array();
     public $currentFacet = 'default';
@@ -43,11 +44,10 @@ class siHooks {
      * @param array $config Optional. An array of configuration parameters.
      * @return siHooks
      */
-    function __construct(SimpleSearch &$search,array $config = array()) {
+    function __construct(SimpleSearch &$search, array $config = array()) {
         $this->search =& $search;
-        $this->modx =& $search->modx;
-        $this->config = array_merge(array(
-        ),$config);
+        $this->modx   =& $search->modx;
+        $this->config = array_merge(array(), $config);
     }
 
     /**
@@ -59,18 +59,26 @@ class siHooks {
      * @param array $customProperties An array of extra properties to send to the hook
      * @return array An array of field name => value pairs.
      */
-    public function loadMultiple($hooks,array $fields = array(),array $customProperties = array()) {
-        if (empty($hooks)) return array();
-        if (is_string($hooks)) $hooks = explode(',',$hooks);
+    public function loadMultiple($hooks, array $fields = array(), array $customProperties = array()) {
+        if (empty($hooks)) {
+            return array();
+        }
 
-        $this->hooks = array();
+        if (is_string($hooks)) {
+            $hooks = explode(',', $hooks);
+        }
+
+        $this->hooks  = array();
         $this->fields =& $fields;
         foreach ($hooks as $hook) {
-            $hook = trim($hook);
-            $success = $this->load($hook,$this->fields,$customProperties);
-            if (!$success) return $this->hooks;
-            /* dont proceed if hook fails */
+            $hook    = trim($hook);
+            $success = $this->load($hook,$this->fields, $customProperties);
+            if (!$success) {
+                /* Dont proceed if hook fails */
+                return $this->hooks;
+            }
         }
+
         return $this->hooks;
     }
 
@@ -83,38 +91,42 @@ class siHooks {
      * @param array $customProperties Any other custom properties to load into a custom hook.
      * @return boolean True if hook was successful.
      */
-    public function load($hook,array $fields = array(),array $customProperties = array()) {
+    public function load($hook, array $fields = array(), array $customProperties = array()) {
         $success = false;
-        if (!empty($fields)) $this->fields =& $fields;
+        if (!empty($fields)) {
+            $this->fields =& $fields;
+        }
+
         $this->hooks[] = $hook;
 
-        $reserved = array('load','_process','__construct','getErrorMessage');
-        if (method_exists($this,$hook) && !in_array($hook,$reserved)) {
+        $reserved = array('load', '_process', '__construct', 'getErrorMessage');
+        if (method_exists($this, $hook) && !in_array($hook, $reserved)) {
             /* built-in hooks */
             $success = $this->$hook($this->fields);
-
-        } else if ($snippet = $this->modx->getObject('modSnippet',array('name' => $hook))) {
+        } else if ($snippet = $this->modx->getObject('modSnippet', array('name' => $hook))) {
             /* custom snippet hook */
-            $properties = array_merge($this->search->config,$customProperties);
+            $properties                 = array_merge($this->search->config,$customProperties);
             $properties['simplesearch'] =& $this->search;
-            $properties['hook'] =& $this;
-            $properties['fields'] = $this->fields;
-            $properties['errors'] =& $this->errors;
-            $success = $snippet->process($properties);
+            $properties['hook']         =& $this;
+            $properties['fields']       = $this->fields;
+            $properties['errors']       =& $this->errors;
+            $success                    = $snippet->process($properties);
 
         } else {
-            /* no hook found */
-            $this->modx->log(modX::LOG_LEVEL_ERROR,'[SimpleSearch] Could not find hook "'.$hook.'".');
+            /* No hook found */
+            $this->modx->log(modX::LOG_LEVEL_ERROR, '[SimpleSearch] Could not find hook "' . $hook . '".');
+
             $success = true;
         }
 
         if (is_array($success) && !empty($success)) {
             $this->errors = array_merge($this->errors,$success);
-            $success = false;
-        } else if ($success != true) {
-            $this->errors[$hook] .= ' '.$success;
+            $success      = false;
+        } else if ($success !== true) {
+            $this->errors[$hook] .= ' ' . $success;
             $success = false;
         }
+
         return $success;
     }
 
@@ -126,7 +138,7 @@ class siHooks {
      * @return string The concatenated error message
      */
     public function getErrorMessage($delim = "\n") {
-        return implode($delim,$this->errors);
+        return implode($delim, $this->errors);
     }
 
     /**
@@ -137,8 +149,9 @@ class siHooks {
      * @param string $value The error message.
      * @return string The added error message with the error wrapper.
      */
-    public function addError($key,$value) {
+    public function addError($key, $value) {
         $this->errors[$key] .= $value;
+
         return $this->errors[$key];
     }
 
@@ -149,8 +162,9 @@ class siHooks {
      * @param mixed $value The value to set to the field.
      * @return mixed The set value.
      */
-    public function setValue($key,$value) {
+    public function setValue($key, $value) {
         $this->fields[$key] = $value;
+
         return $this->fields[$key];
     }
 
@@ -161,7 +175,7 @@ class siHooks {
      */
     public function setValues(array $values = array()) {
         foreach ($values as $key => $value) {
-            $this->setValue($key,$value);
+            $this->setValue($key, $value);
         }
     }
 
@@ -172,7 +186,7 @@ class siHooks {
      * @return mixed The value of the key, or null if non-existent.
      */
     public function getValue($key) {
-        if (array_key_exists($key,$this->fields)) {
+        if (array_key_exists($key, $this->fields)) {
             return $this->fields[$key];
         }
         return null;
@@ -194,10 +208,11 @@ class siHooks {
      * @param array $placeholders An array of placeholders to replace with values
      * @return string The parsed string
      */
-    public function _process($str,array $placeholders = array()) {
-        foreach ($placeholders as $k => $v) {
-            $str = str_replace('[[+'.$k.']]',$v,$str);
+    public function _process($str, array $placeholders = array()) {
+        foreach ($placeholders as $key => $value) {
+            $str = str_replace('[[+' . $key . ']]', $value, $str);
         }
+
         return $str;
     }
 
@@ -210,16 +225,31 @@ class siHooks {
         $this->redirectUrl = $url;
     }
 
-    public function addFacet($facet,array $results = array(),$total = false) {
-        $this->facets[$facet] = array();
+    /**
+     * @param $facet
+     * @param array $results
+     * @param bool $total
+     *
+     * @return mixed
+     */
+    public function addFacet($facet, array $results = array(), $total = false) {
+        $this->facets[$facet]            = array();
         $this->facets[$facet]['results'] = $results;
+
         if ($total === false) {
             $total = count($results);
         }
+
         $this->facets[$facet]['total'] = $total;
+
         return $this->facets[$facet];
     }
-    public function addResultToFacet($facet,$result) {
+
+    /**
+     * @param $facet
+     * @param $result
+     */
+    public function addResultToFacet($facet, $result) {
         $this->facets[$facet]['results'][] = $result;
     }
 }

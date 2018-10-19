@@ -8,7 +8,6 @@ if (!empty($_REQUEST['action']) && in_array($_REQUEST['action'], $webActions)) {
 }
 
 require_once dirname(dirname(dirname(__DIR__))) . '/config.core.php';
-
 require_once MODX_CORE_PATH . 'config/' . MODX_CONFIG_KEY . '.inc.php';
 require_once MODX_CONNECTORS_PATH . 'index.php';
 
@@ -23,11 +22,18 @@ if (in_array($_REQUEST['action'], $webActions, true)) {
     $_REQUEST['HTTP_MODAUTH'] = $_SERVER['HTTP_MODAUTH'];
 }
 
-$instance = $modx->getService('simplesearch', 'SimpleSearch', $modx->getOption('simplesearch.core_path', null, $modx->getOption('core_path') . 'components/simplesearch/') . 'model/simplesearch/');
-
+$instance = $modx->getService(
+    'simplesearch',
+    'SimpleSearch',
+    $modx->getOption(
+        'simplesearch.core_path',
+        null,
+        $modx->getOption('core_path') . 'components/simplesearch/'
+    ) . 'model/simplesearch/'
+);
 if ($instance instanceof SimpleSearch) {
     $modx->request->handleRequest([
-        'processors_path'   => $instance->config['processors_path'],
-        'location'          => ''
+        'processors_path' => $instance->config['processors_path'],
+        'location'        => ''
     ]);
 }

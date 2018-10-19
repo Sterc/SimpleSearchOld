@@ -5,7 +5,8 @@
  * 
  * @package simplesearch
  */
-abstract class SimpleSearchDriver {
+abstract class SimpleSearchDriver
+{
     /** @var SimpleSearch A reference to the SimpleSearch class */
     public $search;
     /** @var modX A reference to the modX class */
@@ -26,10 +27,11 @@ abstract class SimpleSearchDriver {
      * @param SimpleSearch $search
      * @param array $config
      */
-    function __construct(SimpleSearch &$search,array $config = array()) {
+    function __construct(SimpleSearch &$search, array $config = array()) {
         $this->search =& $search;
-        $this->modx =& $search->modx;
-        $this->config = array_merge($config,array());
+        $this->modx   =& $search->modx;
+        $this->config = array_merge($config, array());
+
         $this->initialize();
     }
 
@@ -55,7 +57,7 @@ abstract class SimpleSearchDriver {
      * @param array $scriptProperties The scriptProperties array from the SimpleSearch snippet
      * @return array
      */
-    abstract public function search($string,array $scriptProperties = array());
+    abstract public function search($string, array $scriptProperties = array());
 
     /**
      * Index a Resource.
@@ -82,7 +84,7 @@ abstract class SimpleSearchDriver {
      * @param array $scriptProperties The $scriptProperties array
      * @return array Scored and sorted search results
      */
-    protected function sortResults(array $resources,array $scriptProperties) {
+    protected function sortResults(array $resources, array $scriptProperties) {
         /* Vars */
         $searchStyle = $this->modx->getOption('searchStyle', $scriptProperties, 'partial');
         $docFields = explode(',', $this->modx->getOption('docFields', $scriptProperties, 'pagetitle,longtitle,alias,description,introtext,content'));
@@ -94,29 +96,36 @@ abstract class SimpleSearchDriver {
                 $fieldPotency[$arr[0]] = $arr[1];
             }
         }
+
         /* Score */
         /** @var modResource $resource */
         foreach ($resources as $resourceId => $resource) {
             foreach ($docFields as $field) {
                 $potency = (array_key_exists($field, $fieldPotency)) ? (int) $fieldPotency[$field] : 1;
                 foreach ($this->search->searchArray as $term) {
-                    $queryTerm = preg_quote($term,'/');
-                    $regex = ($searchStyle == 'partial') ? "/{$queryTerm}/i" : "/\b{$queryTerm}\b/i";
+                    $queryTerm       = preg_quote($term,'/');
+                    $regex           = ($searchStyle == 'partial') ? "/{$queryTerm}/i" : "/\b{$queryTerm}\b/i";
                     $numberOfMatches = preg_match_all($regex, $resource->{$field}, $matches);
-                    if (empty($this->searchScores[$resourceId])) $this->searchScores[$resourceId] = 0;
+
+                    if (empty($this->searchScores[$resourceId])) {
+                        $this->searchScores[$resourceId] = 0;
+                    }
+
                     $this->searchScores[$resourceId] += $numberOfMatches * $potency;
                 }
             }
         }
+
         /* Sort */
         arsort($this->searchScores);
+
         $list = array();
         foreach ($this->searchScores as $resourceId => $score) {
             array_push($list, $resources[$resourceId]);
         }
+
         return $list;
     }
-
 
     /**
      * Process the passed IDs
@@ -126,21 +135,29 @@ abstract class SimpleSearchDriver {
      * @param integer $depth The depth in the Resource tree to filter by
      * @return string Comma delimited string of the IDs
      */
-    protected function processIds($ids = '',$type = 'parents',$depth = 10) {
-        if (!strlen($ids)) return '';
+    protected function processIds($ids = '', $type = 'parents', $depth = 10) {
+        if ($ids === '') {
+            return '';
+        }
+
         $ids = $this->cleanIds($ids);
-    	switch ($type) {
+        switch ($type) {
             case 'parents':
                 $idArray = explode(',', $ids);
-                $ids = $idArray;
+                $ids     = $idArray;
+
                 foreach ($idArray as $id) {
-                    $ids = array_merge($ids,$this->modx->getChildIds($id,$depth));
+                    $ids = array_merge($ids, $this->modx->getChildIds($id, $depth));
                 }
+
                 $ids = array_unique($ids);
+
                 sort($ids);
                 break;
         }
+
         $this->ids = $ids;
+
         return $this->ids;
     }
 
@@ -151,16 +168,18 @@ abstract class SimpleSearchDriver {
      * @return string Cleaned comma delimited string of IDs
      */
     public function cleanIds($ids) {
-        $pattern = array (
-            '`(,)+`', //Multiple commas
-            '`^(,)`', //Comma on first position
-            '`(,)$`' //Comma on last position
+        return preg_replace(
+            array(
+                '`(,)+`',  //Multiple commas
+                '`^(,)`',  //Comma on first position
+                '`(,)$`'   //Comma on last position
+            ),
+            array(
+                ',',
+                '',
+                ''
+            ),
+            $ids
         );
-        $replace = array (
-            ',',
-            '',
-            ''
-        );
-        return preg_replace($pattern, $replace, $ids);
     }
 }
