@@ -187,18 +187,24 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver {
             }
         }
 
-    	/* set limit */
-        $perPage = $this->modx->getOption('perPage',$this->config,10);
-    	if (!empty($perPage)) {
-            $offset = $this->modx->getOption('start',$this->config,0);
-            $offsetIndex = $this->modx->getOption('offsetIndex',$this->config,'simplesearch_offset');
-            if (isset($_REQUEST[$offsetIndex])) $offset = (int)$_REQUEST[$offsetIndex];
-            $c->limit($perPage,$offset);
-    	}
-
         $resources = $this->modx->getCollection('modResource', $c);
+
         if (empty($scriptProperties['sortBy'])) {
-            $resources = $this->sortResults($resources,$scriptProperties);
+            $resources = $this->sortResults($resources, $scriptProperties);
+        }
+
+        /* set limit */
+        $perPage = (int) $this->modx->getOption('perPage', $this->config, 10);
+
+        if ($perPage > 0) {
+            $offset         = $this->modx->getOption('start', $this->config, 0);
+            $offsetIndex    = $this->modx->getOption('offsetIndex', $this->config, 'sisea_offset');
+
+            if (isset($_REQUEST[$offsetIndex])) {
+                $offset = (int) $_REQUEST[$offsetIndex];
+            }
+
+            $resources = array_slice($resources, $offset, $perPage);
         }
 
         $includeTVs = $this->modx->getOption('includeTVs',$scriptProperties,'');
