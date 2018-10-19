@@ -4,6 +4,8 @@ SimpleSearch 2.0.0
 ========================================================================
 - Removed elasticsearch and solr driver
 - Renamed namespace sisea to simplesearch
+- Fixed issue where boosting would only be applied to paginated results
+- Added processor for returning a search autosuggest list
 
 SimpleSearch 1.9.2
 ========================================================================

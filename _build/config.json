@@ -404,6 +404,10 @@
       "type": "combo-boolean",
       "value": "1",
       "area": "Drivers"
+    }, {
+      "key": "autosuggest_tv",
+      "value": "simpleSearchAutoSuggestions",
+      "area": "Autosuggest"
     }]
   },
   "build":{

@@ -19,3 +19,5 @@ $_lang['setting_simplesearch.driver_class_path'] = 'Search Driver Class Path';
 $_lang['setting_simplesearch.driver_class_path_desc'] = 'Optional. Set this to point to the absolute path where the search driver_class can be found. Leave blank to use the default driver directory.';
 $_lang['setting_simplesearch.driver_db_specific'] = 'Search Driver Database Specificity';
 $_lang['setting_simplesearch.driver_db_specific_desc'] = 'Set this to Yes if the search driver you are using uses derivative classes for different SQL drivers. (SQL searches will be Yes, Solr and other index-based searches will be No.)';
+$_lang['setting_simplesearch.autosuggest_tv'] = 'Autosuggest Template Variable';
+$_lang['setting_simplesearch.autosuggest_tv_desc'] = 'Provide the TV ID or name to use for generating a list of autosuggest search terms.';

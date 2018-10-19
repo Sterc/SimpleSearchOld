@@ -1,9 +1,10 @@
 <?php
 
-class SimpleSearchAutoSuggestionsProcessor extends modProcessor {
+class SimpleSearchAutoSuggestionsProcessor extends modProcessor
+{
     /**
      * @access public
-     * @return Mixed.
+     * @return mixed
      */
     public function process()
     {
@@ -22,7 +23,7 @@ class SimpleSearchAutoSuggestionsProcessor extends modProcessor {
 
     /**
      * @access protected
-     * @return Array.
+     * @return array
      */
     protected function getSearchSuggestions ()
     {
@@ -35,12 +36,12 @@ class SimpleSearchAutoSuggestionsProcessor extends modProcessor {
 
         if (is_numeric($suggestionsTv)) {
             $c->where([
-                          'modTemplateVar.id' => $suggestionsTv
-                      ]);
+                'modTemplateVar.id' => $suggestionsTv
+            ]);
         } else {
             $c->where([
-                          'modTemplateVar.name' => $suggestionsTv
-                      ]);
+                'modTemplateVar.name' => $suggestionsTv
+            ]);
         }
 
         foreach ($this->modx->getCollection('modTemplateVarResource', $c) as $suggestion) {
