@@ -1,0 +1,1 @@
+[[%simplesearch.no_results? &query=`[[+query]]`]]

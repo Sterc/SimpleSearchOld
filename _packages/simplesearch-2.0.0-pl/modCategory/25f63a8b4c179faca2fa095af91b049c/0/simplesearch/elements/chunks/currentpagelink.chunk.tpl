@@ -1,0 +1,1 @@
+<span class="simplesearch-page simplesearch-current-page">[[+text]]</span>
