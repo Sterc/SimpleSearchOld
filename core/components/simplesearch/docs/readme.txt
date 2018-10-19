@@ -10,6 +10,6 @@ http://rtfm.modx.com/display/ADDON/SimpleSearch/
 
 Bugs and feature requests
 -------------------------
-We greatly value your feedback, feature requests and bug reports. Please issue them on GitHub (https://github.com/Sterc/SimpleSearch/issues/new).
+We value your feedback, feature requests and bug reports. Please issue them on GitHub (https://github.com/Sterc/SimpleSearch/issues/new).
 
 Thanks for using SimpleSearch!
