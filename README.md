@@ -17,7 +17,7 @@ Important changes from 1.* to 2.0.0:
 A processor has been provided for retrieving a list of search suggestions based on a Template Variable containing a comma delimited list of search terms. 
 You can configure the TV to use by setting `simplesearch.autosuggest_tv`, which can either be the TV name or id.
 
-You can use the example code below for retrieving a list of search suggestions.
+You can use the example (requires jQuery) code below for retrieving a list of search suggestions.
 
 ```javascript
 $('.simplesearch-search-form input[type="text"]').on('keyup', function () {
