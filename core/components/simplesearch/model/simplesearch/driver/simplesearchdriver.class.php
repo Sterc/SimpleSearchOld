@@ -116,6 +116,27 @@ abstract class SimpleSearchDriver
             }
         }
 
+        $includeTVList = array_map('trim', explode(',', $this->modx->getOption('includeTVList', $scriptProperties, '')));
+        if ((int) $scriptProperties['includeTVs'] === 1 && count($includeTVList) > 0) {
+            foreach ($includeTVList as $field) {
+                $potency = (array_key_exists($field, $fieldPotency)) ? (int) $fieldPotency[$field] : 1;
+
+                foreach ($resources as $resourceId => $resource) {
+                    foreach ($this->search->searchArray as $term) {
+                        $queryTerm       = preg_quote($term, '/');
+                        $regex           = ($searchStyle === 'partial') ? "/{$queryTerm}/i" : "/\b{$queryTerm}\b/i";
+                        $numberOfMatches = preg_match_all($regex, $resource->getTVValue($field), $matches);
+
+                        if (empty($this->searchScores[$resourceId])) {
+                            $this->searchScores[$resourceId] = 0;
+                        }
+
+                        $this->searchScores[$resourceId] += $numberOfMatches * $potency;
+                    }
+                }
+            }
+        }
+
         /* Sort */
         arsort($this->searchScores);
 
