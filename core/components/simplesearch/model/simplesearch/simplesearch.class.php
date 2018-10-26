@@ -225,7 +225,7 @@ class SimpleSearch
             $pageArray['separator'] = $separator;
             $pageArray['offset']    = $i * $perPage;
 
-            $currentOffset = $this->modx->getOption($searchOffset,$_GET,0);
+            $currentOffset = intval($this->modx->getOption($searchOffset,$_GET,0));
             if ($pageLimit > 0 && $i + 1 === 1 && $pageArray['offset'] !== $currentOffset && !empty($pageFirstTpl)) {
                 $parameters = $this->modx->request->getParameters();
                 $parameters = array_merge(
