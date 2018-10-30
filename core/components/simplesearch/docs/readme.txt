@@ -1,7 +1,7 @@
 =====================
 Snippet: SimpleSearch
 =====================
-Version: 2.0.0
+Version: 2.0.1
 Author: Sterc <modx@sterc.com>
 License: GNU GPLv2 (or later at your option)
 
