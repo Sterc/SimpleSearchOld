@@ -1,5 +1,11 @@
 Changelog for SimpleSearch.
 
+SimpleSearch 2.0.1
+========================================================================
+- Fixed so that includedTVs can also be boosted PR #1
+- Fixed condition for leftJoin of query to only join includeTVList TemplateVars when property is set. PR #5. Thanks to travisbotello
+- Fixed issue with currentPageTpl. PR #6. Thanks to travisbotello.
+
 SimpleSearch 2.0.0
 ========================================================================
 - Removed elasticsearch and solr driver
