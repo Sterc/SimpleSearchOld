@@ -46,6 +46,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
 
         $c = $this->modx->newQuery('modResource');
         if ($includeTVs) {
+            $c->leftJoin('modTemplateVarResource', 'TemplateVarResources');
 
             if (!empty ($includeTVList)) {
                 $includeTVList = explode(',', $includeTVList);
@@ -58,8 +59,6 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                         'TemplateVar.name:IN' => $includeTVList
                     )
                 );
-            } else {
-                $c->leftJoin('modTemplateVarResource', 'TemplateVarResources');
             }
         }
 
