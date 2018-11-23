@@ -6,6 +6,28 @@
   "version": "2.0.0-pl",
   "package":{
     "elements": {
+      "chunks": [{
+        "name": "SearchForm",
+        "file": "searchform.chunk.tpl"
+      },{
+        "name": "SearchNoResults",
+        "file": "searchnoresults.chunk.tpl"
+      },{
+        "name": "SearchResults",
+        "file": "searchresults.chunk.tpl"
+      },{
+        "name": "SearchResult",
+        "file": "searchresult.chunk.tpl"
+      },{
+        "name": "PageLink",
+        "file": "pagelink.chunk.tpl"
+      },{
+        "name": "CurrentPageLink",
+        "file": "currentpagelink.chunk.tpl"
+      },{
+        "name": "SearchResultLi",
+        "file": "searchresultli.chunk.tpl"
+      }],
       "snippets": [{
         "name": "SimpleSearch",
         "properties": [{

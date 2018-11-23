@@ -12,12 +12,6 @@ require_once $modx->getOption(
         $modx->getOption('core_path') . 'components/simplesearch/'
     ) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
-$parser = $search;
-
-/* Overwrite with pdoparser for filebased chunks */
-if ($pdo = $modx->getService('pdoTools')) {
-    $parser = $pdo;
-}
 
 /* Find search index and toplaceholder setting */
 $searchIndex   = $modx->getOption('searchIndex', $scriptProperties, 'search');
@@ -26,7 +20,7 @@ $noResultsTpl  = $modx->getOption('noResultsTpl', $scriptProperties, 'SearchNoRe
 
 /* Get search string */
 if (empty($_REQUEST[$searchIndex])) {
-    $output = $parser->getChunk($noResultsTpl, array(
+    $output = $search->getChunk($noResultsTpl, array(
         'query' => '',
     ));
 
@@ -34,7 +28,7 @@ if (empty($_REQUEST[$searchIndex])) {
 }
 $searchString = $search->parseSearchString($_REQUEST[$searchIndex]);
 if (!$searchString) {
-    $output = $parser->getChunk($noResultsTpl, array(
+    $output = $search->getChunk($noResultsTpl, array(
         'query' => $searchString,
     ));
 
@@ -102,7 +96,7 @@ if (!empty($response['results'])) {
             $resourceArray['extract'] = !empty($highlightResults) ? $search->addHighlighting($extract, $highlightClass, $highlightTag) : $extract;
         }
 
-        $resultsTpl['default']['results'][] = $parser->getChunk($tpl, $resourceArray);
+        $resultsTpl['default']['results'][] = $search->getChunk($tpl, $resourceArray);
 
         $idx++;
     }
@@ -137,7 +131,7 @@ if (!empty($postHooks)) {
             foreach ($facetResults['results'] as $r) {
                 $r['idx']                           = $idx;
                 $fTpl                               = !empty($scriptProperties['tpl' . $facetKey]) ? $scriptProperties['tpl' . $facetKey] : $tpl;
-                $resultsTpl[$facetKey]['results'][] = $parser->getChunk($fTpl,$r);
+                $resultsTpl[$facetKey]['results'][] = $search->getChunk($fTpl,$r);
                 $idx++;
             }
         }
@@ -180,11 +174,11 @@ $modx->setPlaceholder($placeholderPrefix . 'count', $response['total']);
 $modx->setPlaceholders($placeholders, $placeholderPrefix);
 
 if (empty($response['results'])) {
-    $output = $parser->getChunk($noResultsTpl, array(
+    $output = $search->getChunk($noResultsTpl, array(
         'query' => $searchString,
     ));
 } else {
-    $output = $parser->getChunk($containerTpl, $placeholders);
+    $output = $search->getChunk($containerTpl, $placeholders);
 }
 
 return $search->output($output, $toPlaceholder);

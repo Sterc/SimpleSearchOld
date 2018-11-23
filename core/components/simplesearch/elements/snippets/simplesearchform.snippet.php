@@ -1,6 +1,5 @@
 <?php
-ini_set("display_errors", "1");
-error_reporting(E_ALL);
+
 /**
  * Show the search form
  *
@@ -14,12 +13,6 @@ require_once $modx->getOption(
     $modx->getOption('core_path') . 'components/simplesearch/'
 ) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
-$parser = $search;
-
-/* Overwrite with pdoparser for filebased chunks */
-if ($pdo = $modx->getService('pdoTools')) {
-    $parser = $pdo;
-}
 
 /* Setup default options. */
 $scriptProperties = array_merge(
@@ -49,6 +42,6 @@ $placeholders = array(
     'searchIndex' => $scriptProperties['searchIndex'],
 );
 
-$output = $parser->getChunk($scriptProperties['tpl'], $placeholders);
+$output = $search->getChunk($scriptProperties['tpl'], $placeholders);
 
 return $search->output($output, $scriptProperties['toPlaceholder']);
