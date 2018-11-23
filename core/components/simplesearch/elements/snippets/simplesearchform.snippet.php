@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Show the search form
  *
@@ -37,7 +38,7 @@ $searchValue  = implode(' ', $searchValues);
 $placeholders = array(
     'method'      => $scriptProperties['method'],
     'landing'     => $scriptProperties['landing'],
-    'searchValue' => strip_tags(str_replace(array('[', ']', '"', "'"), array('&#91;', '&#93;', '&quot;', '&apos;'), $searchValue)),
+    'searchValue' => strip_tags(htmlspecialchars($searchValue, ENT_QUOTES, 'UTF-8')),
     'searchIndex' => $scriptProperties['searchIndex'],
 );
 
