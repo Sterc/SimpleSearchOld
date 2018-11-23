@@ -1,5 +1,9 @@
 Changelog for SimpleSearch.
 
+SimpleSearch 2.1.0
+- Added pdoParser support
+- Fix XSS security issue
+
 SimpleSearch 2.0.1
 ========================================================================
 - Fixed so that includedTVs can also be boosted PR #1
