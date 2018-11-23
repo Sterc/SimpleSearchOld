@@ -7,10 +7,10 @@
  * @package simplesearch
  */
 require_once $modx->getOption(
-    'simplesearch.core_path',
-    null,
-    $modx->getOption('core_path') . 'components/simplesearch/'
-) . 'model/simplesearch/simplesearch.class.php';
+        'simplesearch.core_path',
+        null,
+        $modx->getOption('core_path') . 'components/simplesearch/'
+    ) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
 
 /* Find search index and toplaceholder setting */
@@ -108,13 +108,13 @@ if (!empty($postHooks)) {
 
     $search->loadHooks('post');
     $search->postHooks->loadMultiple($postHooks, $response['results'],
-        array(
-            'hooks'   => $postHooks,
-            'search'  => $searchString,
-            'offset'  => !empty($_GET[$offsetIndex]) ? (int) $_GET[$offsetIndex] : 0,
-            'limit'   => $limit,
-            'perPage' => $limit,
-        )
+                                     array(
+                                         'hooks'   => $postHooks,
+                                         'search'  => $searchString,
+                                         'offset'  => !empty($_GET[$offsetIndex]) ? (int) $_GET[$offsetIndex] : 0,
+                                         'limit'   => $limit,
+                                         'perPage' => $limit,
+                                     )
     );
 
     if (!empty($search->postHooks->facets)) {

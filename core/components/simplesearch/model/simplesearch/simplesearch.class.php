@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The base class for SimpleSearch
  *
@@ -57,6 +56,10 @@ class SimpleSearch
      * @return string The processed content of the Chunk
      */
     public function getChunk($name, $properties = array()) {
+        if (class_exists('pdoTools') && $pdo = $this->modx->getService('pdoTools')) {
+            return $pdo->getChunk($name, $properties);
+        }
+
         $chunk = null;
         if (!isset($this->chunks[$name])) {
             $chunk = $this->_getTplChunk($name);
@@ -174,7 +177,8 @@ class SimpleSearch
         }
 
         $this->loadDriver($scriptProperties);
-
+//        var_dump($this->driver->search($str, $scriptProperties));
+//        exit;
         $this->response           = $this->driver->search($str, $scriptProperties);
         $this->searchResultsCount = $this->response['total'];
         $this->docs               = $this->response['results'];
