@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Show the search form
  *

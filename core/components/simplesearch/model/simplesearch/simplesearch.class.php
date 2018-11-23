@@ -177,7 +177,8 @@ class SimpleSearch
         }
 
         $this->loadDriver($scriptProperties);
-
+//        var_dump($this->driver->search($str, $scriptProperties));
+//        exit;
         $this->response           = $this->driver->search($str, $scriptProperties);
         $this->searchResultsCount = $this->response['total'];
         $this->docs               = $this->response['results'];

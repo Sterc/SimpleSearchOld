@@ -28,6 +28,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
      * @return array
      */
     public function search($str, array $scriptProperties = array()) {
+
         if (!empty($str)) {
             $this->searchString = strip_tags($this->modx->sanitizeString($str));
         }
@@ -47,18 +48,13 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
         $c = $this->modx->newQuery('modResource');
         if ($includeTVs) {
             $c->leftJoin('modTemplateVarResource', 'TemplateVarResources');
-
-            if (!empty ($includeTVList)) {
+            if (!empty($includeTVList)) {
                 $includeTVList = explode(',', $includeTVList);
                 $includeTVList = array_map('trim', $includeTVList);
-
-                $c->leftJoin(
-                    'modTemplateVar',
-                    'TemplateVar',
-                    array(
-                        'TemplateVar.name:IN' => $includeTVList
-                    )
-                );
+                $c->leftJoin('modTemplateVar', 'TemplateVar', array('TemplateVarResources.tmplvarid = TemplateVar.id'));
+                $c->where(array(
+                    'TemplateVar.name:IN' => $includeTVList
+                ));
             }
         }
 
