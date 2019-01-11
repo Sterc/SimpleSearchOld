@@ -1,6 +1,7 @@
 Changelog for SimpleSearch.
 
 SimpleSearch 2.1.0
+========================================================================
 - Added pdoParser support
 - Fix XSS security issue
 
