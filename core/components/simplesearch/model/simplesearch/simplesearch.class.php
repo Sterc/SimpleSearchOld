@@ -504,4 +504,48 @@ class SimpleSearch
 
         return $this->$type;
     }
+
+    /**
+     * Helper method for missing params in events.
+     *
+     * @param $modx
+     * @param $children
+     * @param $parent
+     * @return bool
+     */
+    public function simpleSearchGetChildren(&$modx, &$children, $parent) {
+        $success = false;
+
+        $kids = $this->modx->getCollection('modResource', ['parent' => $parent]);
+        if (!empty($kids)) {
+            /** @var modResource $kid */
+            foreach ($kids as $kid) {
+                $children[] = $kid->toArray();
+
+                $this->simpleSearchGetChildren($modx, $children, $kid->get('id'));
+            }
+        }
+
+        return $success;
+    }
+
+    /**
+     * Unset some unwanted fields before index.
+     *
+     * @param array $resourceArray
+     * @return array
+     */
+    public function prepareResourceForIndex(array $resourceArray = [])
+    {
+        unset(
+            $resourceArray['ta'],
+            $resourceArray['action'],
+            $resourceArray['tiny_toggle'],
+            $resourceArray['HTTP_MODAUTH'],
+            $resourceArray['modx-ab-stay'],
+            $resourceArray['resource_groups']
+        );
+
+        return $resourceArray;
+    }
 }

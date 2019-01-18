@@ -412,6 +412,11 @@
           "value": "",
           "lexicon": "simplesearch:properties"
         }]
+      }],
+      "plugins": [{
+        "name": "SimpleSearchIndexer",
+        "file": "simplesearchindexer.plugin.php",
+        "events": ["OnDocFormSave", "OnDocPublished", "OnDocUnPublished", "OnResourceDelete", "OnResourceDuplicate", "OnResourceUndelete"]
       }]
     },
     "systemSettings": [{
