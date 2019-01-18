@@ -412,6 +412,9 @@
           "value": "",
           "lexicon": "simplesearch:properties"
         }]
+      }, {
+        "name": "SimpleSearchIndexAll",
+        "file": "simplesearchindexall.snippet.php"
       }],
       "plugins": [{
         "name": "SimpleSearchIndexer",

@@ -548,4 +548,47 @@ class SimpleSearch
 
         return $resourceArray;
     }
+
+    /**
+     * Used for indexing all resources with alternate search drivers.
+     *
+     * @param $scriptProperties
+     * @return mixed
+     */
+    public function indexAllResources($scriptProperties)
+    {
+        $search = $this->loadDriver($scriptProperties);
+
+        $includeTVs = $this->modx->getOption('includeTVs', $scriptProperties, true);
+        $processTVs = $this->modx->getOption('processTVs', $scriptProperties, true);
+
+        $c = $this->modx->newQuery('modResource');
+        $c->where([
+            'searchable' => true,
+            'deleted'    => false,
+            'published'  => true,
+        ]);
+
+        $c->sortby('id', 'ASC');
+        $resources = $this->modx->getIterator('modResource', $c);
+
+        $total = 0;
+        foreach ($resources as $resource) {
+            $resourceArray = $resource->toArray();
+
+            $templateVars =& $resource->getMany('TemplateVars');
+            if (!empty($templateVars) && $includeTVs) {
+                foreach ($templateVars as $tvId => $templateVar) {
+                    $resourceArray[$templateVar->get('name')] = !empty($processTVs) ? $templateVar->renderOutput($resource->get('id')) : $templateVar->get('value');
+                }
+            }
+
+            if ($search->driver->index($resourceArray, false)) {
+                $this->modx->log(modX::LOG_LEVEL_INFO, '[SimpleSearch] Indexing Resource: ' . $resourceArray['pagetitle']);
+                $total++;
+            }
+        }
+
+        return $this->modx->lexicon('simplesearch.index_finished', ['total' => $total]);
+    }
 }
