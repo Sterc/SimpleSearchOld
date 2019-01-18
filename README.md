@@ -11,6 +11,7 @@ Upgrading to 2.0.0 from 1.* is highly recommended, but it does introduce some ri
 
 Important changes from 1.* to 2.0.0:
 - The namespace has been changed from `sisea` to `simplesearch`. If you're using custom System Settings, then please migrate them.
+- The placeholder prefix has also been changed from `sisea` to `simplesearch`.
 - The ElasticSearch and SOLR drivers have been removed, because they were in need of improvements. Future drivers should be seperate addons. Feel free to ask us for help here.
 
 ## Autosuggest
