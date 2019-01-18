@@ -27,7 +27,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
      * @param array $scriptProperties
      * @return array
      */
-    public function search($str, array $scriptProperties = array()) {
+    public function search($str, array $scriptProperties = []) {
 
         if (!empty($str)) {
             $this->searchString = strip_tags($this->modx->sanitizeString($str));

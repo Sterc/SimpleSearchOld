@@ -30,12 +30,12 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         spl_autoload_register([$this, 'autoLoad']);
 
         $this->_connectionOptions = [
-            'url' => $this->modx->getOption('sisea.elastic.hostname', null, 'http://127.0.0.1') . ':' . $this->modx->getOption('sisea.elastic.port', null, 9200) . '/'
+            'url' => $this->modx->getOption('simplesearch.elastic.hostname', null, 'http://127.0.0.1') . ':' . $this->modx->getOption('simplesearch.elastic.port', null, 9200) . '/'
         ];
 
         try {
             $this->client = new \Elastica\Client($this->_connectionOptions);
-            $this->index  = $this->client->getIndex(strtolower($this->modx->getOption('sisea.elastic.index', null, 'simplesearchindex')));
+            $this->index  = $this->client->getIndex(strtolower($this->modx->getOption('simplesearch.elastic.index', null, 'simplesearchindex')));
 
             if (!$this->index->exists()) {
                 $indexSetup = $this->modx->getObject('modSnippet', ['name' => 'SimpleSearchElasticIndexSetup']);
@@ -97,7 +97,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
 
     public function autoLoad($class)
     {
-        $file = $this->modx->getOption('sisea.core_path', null, $this->modx->getOption('core_path') . 'components/simplesearch/');
+        $file = $this->modx->getOption('simplesearch.core_path', null, $this->modx->getOption('core_path') . 'components/simplesearch/');
         $file .= 'model/simplesearch/driver/libs/' . $class . '.php';
 
         $file = str_replace('\\', '/', $file);
@@ -116,7 +116,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
      */
     public function search($string, array $scriptProperties = [])
     {
-        $fields = $this->modx->getOption('sisea.elastic.search_fields', null, 'pagetitle^20,introtext^10,alias^5,content^1');
+        $fields = $this->modx->getOption('simplesearch.elastic.search_fields', null, 'pagetitle^20,introtext^10,alias^5,content^1');
 
         $fields = explode(',', $fields);
         $fields = array_map('trim', $fields);
@@ -135,7 +135,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         $customFilterScore = new \Elastica\Query\CustomFiltersScore();
         $customFilterScore->setQuery($query);
 
-        $searchBoosts = $this->modx->getOption('sisea.elastic.search_boost', null, '');
+        $searchBoosts = $this->modx->getOption('simplesearch.elastic.search_boost', null, '');
         $searchBoosts = explode('|', $searchBoosts);
         $searchBoosts = array_map('trim', $searchBoosts);
         $searchBoosts = array_keys(array_flip($searchBoosts));

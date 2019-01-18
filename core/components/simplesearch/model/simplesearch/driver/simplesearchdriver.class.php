@@ -14,9 +14,9 @@ abstract class SimpleSearchDriver
     /** @var array An array of configuration properties */
     public $config;
     /** @var array An array of search scores. Optionally used. */
-    public $searchScores = array();
+    public $searchScores = [];
     /** @var array The IDs of the search results */
-    public $ids = array();
+    public $ids = [];
 
     /**
      * Construct and return the driver object, and run the initialize method.
@@ -27,10 +27,10 @@ abstract class SimpleSearchDriver
      * @param SimpleSearch $search
      * @param array $config
      */
-    function __construct(SimpleSearch &$search, array $config = array()) {
+    function __construct(SimpleSearch &$search, array $config = []) {
         $this->search =& $search;
         $this->modx   =& $search->modx;
-        $this->config = array_merge($config, array());
+        $this->config = array_merge($config, []);
 
         $this->initialize();
     }
@@ -57,7 +57,7 @@ abstract class SimpleSearchDriver
      * @param array $scriptProperties The scriptProperties array from the SimpleSearch snippet
      * @return array
      */
-    abstract public function search($string, array $scriptProperties = array());
+    abstract public function search($string, array $scriptProperties = []);
 
     /**
      * Index a Resource.
@@ -156,7 +156,8 @@ abstract class SimpleSearchDriver
      * @param integer $depth The depth in the Resource tree to filter by
      * @return string Comma delimited string of the IDs
      */
-    protected function processIds($ids = '', $type = 'parents', $depth = 10) {
+    protected function processIds($ids = '', $type = 'parents', $depth = 10)
+    {
         if ($ids === '') {
             return '';
         }

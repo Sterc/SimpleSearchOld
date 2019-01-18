@@ -9,39 +9,40 @@ class SimpleSearch
     /** @var modX $modx */
     public $modx;
     /** @var array $config */
-    public $config = array();
+    public $config = [];
     /** @var string $searchString */
     public $searchString = '';
     /** @var array $searchArray */
-    public $searchArray = array();
+    public $searchArray = [];
     /** @var int $searchResultsCount */
     public $searchResultsCount = 0;
     /* @var string $ids */
     public $ids = '';
     /** @var array $docs */
-    public $docs = array();
+    public $docs = [];
     /** @var array $chunks */
-    public $chunks = array();
+    public $chunks = [];
     /** @var SimpleSearchDriver $driver */
     public $driver;
     /** @var siHooks $postHooks */
     public $postHooks;
     /** @var array $response */
-    public $response = array();
+    public $response = [];
 
-    function __construct(modX &$modx, array $config = array()) {
+    function __construct(modX &$modx, array $config = [])
+    {
         $this->modx =& $modx;
         $corePath   = $this->modx->getOption('simplesearch.core_path', null, $this->modx->getOption('core_path') . 'components/simplesearch/');
         $assetsUrl  = $this->modx->getOption('simplesearch.assets_url', null, $this->modx->getOption('assets_url') . 'components/simplesearch/');
 
-        $this->config = array_merge(array(
+        $this->config = array_merge([
             'corePath'        => $corePath,
             'chunksPath'      => $corePath.'elements/chunks/',
             'snippetsPath'    => $corePath.'elements/snippets/',
             'modelPath'       => $corePath.'model/',
             'processors_path' => $corePath . 'processors/',
             'assetsUrl'       => $assetsUrl,
-        ), $config);
+        ], $config);
 
         $this->modx->lexicon->load('simplesearch:default');
     }
@@ -55,16 +56,17 @@ class SimpleSearch
      * @param array $properties The properties for the Chunk
      * @return string The processed content of the Chunk
      */
-    public function getChunk($name, $properties = array()) {
+    public function getChunk($name, $properties = [])
+    {
         if (class_exists('pdoTools') && $pdo = $this->modx->getService('pdoTools')) {
             return $pdo->getChunk($name, $properties);
         }
 
         $chunk = null;
         if (!isset($this->chunks[$name])) {
-            $chunk = $this->_getTplChunk($name);
+            $chunk = $this->getTplChunk($name);
             if (empty($chunk)) {
-                $chunk = $this->modx->getObject('modChunk',array('name' => $name),true);
+                $chunk = $this->modx->getObject('modChunk', ['name' => $name], true);
                 if ($chunk === false) {
                     return false;
                 }
@@ -90,20 +92,21 @@ class SimpleSearch
      * @return modChunk/boolean Returns the modChunk object if found, otherwise
      * false.
      */
-    private function _getTplChunk($name, $postFix = '.chunk.tpl') {
+    private function getTplChunk($name, $postFix = '.chunk.tpl')
+    {
         $chunk = false;
         if (file_exists($name)) {
-            $f = $name;
+            $file = $name;
         } else {
-            $f = $this->config['chunksPath'].strtolower($name).$postFix;
+            $file = $this->config['chunksPath'].strtolower($name) . $postFix;
         }
 
-        if (file_exists($f)) {
-            $o     = file_get_contents($f);
+        if (file_exists($file)) {
+            $content = file_get_contents($file);
             $chunk = $this->modx->newObject('modChunk');
 
-            $chunk->set('name',$name);
-            $chunk->setContent($o);
+            $chunk->set('name', $name);
+            $chunk->setContent($content);
         }
         return $chunk;
     }
@@ -114,7 +117,8 @@ class SimpleSearch
      * @param array $scriptProperties
      * @return SimpleSearchDriver
      */
-    public function loadDriver(array $scriptProperties = array()) {
+    public function loadDriver(array $scriptProperties = [])
+    {
         $driverClass     = $this->modx->getOption('simplesearch.driver_class', $scriptProperties, 'SimpleSearchDriverBasic');
         $driverClassPath = $this->modx->getOption('simplesearch.driver_class_path', $scriptProperties, '');
         if (empty($driverClassPath)) {
@@ -143,7 +147,8 @@ class SimpleSearch
      * @param string $str The string to parse.
      * @return string The parsed and cleansed string.
      */
-    public function parseSearchString($str = '') {
+    public function parseSearchString($str = '')
+    {
         $minChars = $this->modx->getOption('minChars', $this->config, 4);
 
         $this->searchArray = explode(' ',$str);
@@ -171,7 +176,8 @@ class SimpleSearch
      * @param array $scriptProperties
      * @return array An array of modResource results of the search.
      */
-    public function getSearchResults($str = '', array $scriptProperties = array()) {
+    public function getSearchResults($str = '', array $scriptProperties = [])
+    {
         if (!empty($str)) {
             $this->searchString = strip_tags($this->modx->sanitizeString($str));
         }
@@ -195,7 +201,8 @@ class SimpleSearch
      * @param bool|int $total The total of records. Will default to the main count if not passed
      * @return string Pagination links.
      */
-    public function getPagination($searchString = '', $perPage = 10, $separator = ' | ', $total = false) {
+    public function getPagination($searchString = '', $perPage = 10, $separator = ' | ', $total = false)
+    {
         if ($total === false) {
             $total = $this->response['total'];
         }
@@ -327,7 +334,8 @@ class SimpleSearch
      * @param string $text The text to sanitize
      * @return string The sanitized text
      */
-    public function sanitize($text) {
+    public function sanitize($text)
+    {
         $text = strip_tags($text);
         $text = preg_replace('/(\[\[\+.*?\]\])/i', '', $text);
 
@@ -343,7 +351,8 @@ class SimpleSearch
      * @param string $ellipsis The ellipsis to use to wrap around the extract.
      * @return string The generated extract.
      */
-    public function createExtract($text, $length = 200, $search = '', $ellipsis = '...') {
+    public function createExtract($text, $length = 200, $search = '', $ellipsis = '...')
+    {
         $text = trim(preg_replace('/\s+/', ' ', $this->sanitize($text)));
         if (empty($text)) {
             return '';

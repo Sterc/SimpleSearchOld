@@ -5,5 +5,6 @@
  *
  * @package simplesearch
  */
-require_once strtr(realpath(dirname(__DIR__)), '\\', '/') . '/simplesearchdriverbasic.class.php';
+require_once __DIR__ . '/simplesearchdriverbasic.class.php';
+
 class SimpleSearchDriverBasic_mysql extends SimpleSearchDriverBasic {}
