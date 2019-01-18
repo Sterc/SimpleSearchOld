@@ -26,7 +26,7 @@ $action           = 'index';
 $resourcesToIndex = [];
 switch ($modx->event->name) {
     case 'OnDocFormSave':
-        $action = 'index';
+        $action        = 'index';
         $resourceArray = $scriptProperties['resource']->toArray();
 
         if ($resourceArray['published'] === 1 && $resourceArray['deleted'] === 0) {

@@ -42,7 +42,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
                 if ($indexSetup) {
                     $indexOptions = $this->modx->fromJSON($this->modx->runSnippet('SimpleSearchElasticIndexSetup'));
                 } else {
-                    $indexOptions = $this->modx->fromJSON($this->modx->runSnippet('SimpleSearchElasticIndexSetup_default'));
+                    $indexOptions = $this->defaultSetup();
                 }
 
                 $this->index->create($indexOptions, true);
@@ -50,6 +50,49 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         } catch (Exception $e) {
             $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'Error connecting to ElasticSearch server: ' . $e->getMessage());
         }
+    }
+
+    protected function defaultSetup()
+    {
+        return [
+            'number_of_shards'   => 5,
+            'number_of_replicas' => 1,
+            'analysis' => [
+                'analyzer' => [
+                    'default_index' => [
+                        'type'      => 'custom',
+                        'tokenizer' => 'whitespace',
+                        'filter'    => [
+                            'asciifolding',
+                            'standard',
+                            'lowercase',
+                            'haystack_edgengram'
+                        ]
+                    ],
+                    'default_search' => [
+                        'type'      => 'custom',
+                        'tokenizer' => 'whitespace',
+                        'filter'    => [
+                            'asciifolding',
+                            'standard',
+                            'lowercase'
+                        ]
+                    ]
+                ],
+                'filter' => [
+                    'haystack_ngram' => [
+                        'type'     => 'nGram',
+                        'min_gram' => 2,
+                        'max_gram' => 30,
+                    ],
+                    'haystack_edgengram' => [
+                        'type'     => 'edgeNGram',
+                        'min_gram' => 2,
+                        'max_gram' => 30,
+                    ]
+                ]
+            ]
+        ];
     }
 
     public function autoLoad($class)
@@ -71,7 +114,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
      * @param array $scriptProperties The scriptProperties array from the SimpleSearch snippet
      * @return array
      */
-    public function search($string,array $scriptProperties = [])
+    public function search($string, array $scriptProperties = [])
     {
         $fields = $this->modx->getOption('sisea.elastic.search_fields', null, 'pagetitle^20,introtext^10,alias^5,content^1');
 
