@@ -174,9 +174,7 @@ $modx->setPlaceholder($placeholderPrefix . 'count', $response['total']);
 $modx->setPlaceholders($placeholders, $placeholderPrefix);
 
 if (empty($response['results'])) {
-    $output = $search->getChunk($noResultsTpl, array(
-        'query' => $searchString,
-    ));
+   $output = $search->getChunk($noResultsTpl, $placeholders);
 } else {
     $output = $search->getChunk($containerTpl, $placeholders);
 }
