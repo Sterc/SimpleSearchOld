@@ -267,7 +267,7 @@ class SimpleSearch
 
                     $pagination .= $this->getChunk($currentPageTpl,$pageArray);
                 } else {
-                    $parameters = [];
+                    $parameters = $this->modx->request->getParameters();
                     $parameters = array_merge(
                         $parameters,
                         array(
