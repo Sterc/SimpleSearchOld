@@ -230,7 +230,7 @@ class SimpleSearch
             $pageArray['offset']    = $i * $perPage;
 
             $currentOffset = intval($this->modx->getOption($searchOffset,$_GET,0));
-            if ($pageLimit > 0 && $i + 1 === 1 && $pageArray['offset'] !== $currentOffset && !empty($pageFirstTpl)) {
+            if (!empty($pageFirstTpl) && $pageLimit > 0 && $i + 1 === 1 && (int)$pageArray['offset'] !== $currentOffset) {
                 $parameters = $this->modx->request->getParameters();
                 $parameters = array_merge(
                     $parameters,
@@ -260,7 +260,7 @@ class SimpleSearch
                     $pagination .= $this->getChunk($pagePrevTpl,$pageArray);
                 }
             }
-            if (empty($pageLimit) || ($pageArray['offset'] >= $currentOffset - ($pageLimit * $perPage) && $pageArray['offset'] <= $currentOffset + ($pageLimit * $perPage))) {
+            if (empty($pageLimit) || ((int)$pageArray['offset'] >= $currentOffset - ($pageLimit * $perPage) && (int)$pageArray['offset'] <= $currentOffset + ($pageLimit * $perPage))) {
                 if ($currentOffset === $pageArray['offset']) {
                     $pageArray['text'] = $i + 1;
                     $pageArray['link'] = $i + 1;
@@ -281,7 +281,7 @@ class SimpleSearch
                     $pagination .= $this->getChunk($pageTpl,$pageArray);
                 }
             }
-            if ($pageLimit > 0 && $i + 1 === $pageLinkCount && $pageArray['offset'] !== $currentOffset && !empty($pageLastTpl)) {
+            if (!empty($pageLastTpl) && $pageLimit > 0 && $i + 1 === (int)$pageLinkCount && (int)$pageArray['offset'] !== $currentOffset) {
                 if (!empty($pageNextTpl) && ($currentOffset + $perPage) <= $total) {
                     $parameters = $this->modx->request->getParameters();
                     $parameters = array_merge(
