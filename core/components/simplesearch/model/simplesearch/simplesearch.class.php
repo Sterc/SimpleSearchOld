@@ -344,7 +344,7 @@ class SimpleSearch
      * @return string The generated extract.
      */
     public function createExtract($text, $length = 200, $search = '', $ellipsis = '...') {
-        $text = trim(preg_replace('/\s+/', ' ', $this->sanitize($text)));
+        $text = trim(preg_replace('/\s+/u', ' ', $this->sanitize($text)));
         if (empty($text)) {
             return '';
         }
