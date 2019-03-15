@@ -7,10 +7,10 @@
  * @package simplesearch
  */
 require_once $modx->getOption(
-        'simplesearch.core_path',
-        null,
-        $modx->getOption('core_path') . 'components/simplesearch/'
-    ) . 'model/simplesearch/simplesearch.class.php';
+    'simplesearch.core_path',
+    null,
+    $modx->getOption('core_path') . 'components/simplesearch/'
+) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
 
 /* Find search index and toplaceholder setting */
@@ -54,7 +54,7 @@ $tvPrefix          = $modx->getOption('tvPrefix', $scriptProperties, '');
 $offsetIndex       = $modx->getOption('offsetIndex', $scriptProperties, 'simplesearch_offset');
 $idx               = isset($_REQUEST[$offsetIndex]) ? (int) $_REQUEST[$offsetIndex] + 1 : 1;
 $postHooks         = $modx->getOption('postHooks', $scriptProperties, '');
-$activeFacet       = $modx->getOption('facet',$_REQUEST,$modx->getOption('activeFacet', $scriptProperties, 'default'));
+$activeFacet       = $modx->getOption('facet', $_REQUEST, $modx->getOption('activeFacet', $scriptProperties, 'default'));
 $activeFacet       = $modx->sanitizeString($activeFacet);
 $facetLimit        = $modx->getOption('facetLimit', $scriptProperties, 5);
 $outputSeparator   = $modx->getOption('outputSeparator', $scriptProperties, "\n");
@@ -88,7 +88,7 @@ if (!empty($response['results'])) {
                 $text = $modx->runSnippet($extractSource, $resourceArray);
             }
 
-            $extract = $search->createExtract($text,$extractLength,$extract,$extractEllipsis);
+            $extract = $search->createExtract($text, $extractLength, $extract,$extractEllipsis);
 
             /* Cleanup extract */
             $extract = strip_tags(preg_replace("#\<!--(.*?)--\>#si", '', $extract));
@@ -166,7 +166,7 @@ if (!empty($placeholders['results'])) {
 
     /* If perPage set to >0, add paging */
     if ($perPage > 0) {
-        $placeholders['paging'] = $search->getPagination($searchString,$perPage,$pagingSeparator,$placeholders['total']);
+        $placeholders['paging'] = $search->getPagination($searchString, $perPage, $pagingSeparator, $placeholders['total']);
     }
 }
 
