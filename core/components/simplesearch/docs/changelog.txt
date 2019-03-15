@@ -1,5 +1,15 @@
 Changelog for SimpleSearch.
 
+SimpleSearch 2.1.2
+========================================================================
+- Show facet results when default has none.
+- Have all placeholders in no result page
+- Fix pagination for pageLimit & facet search
+
+SimpleSearch 2.1.1
+========================================================================
+- Fix includeTVList bug to show normal search results as well.
+
 SimpleSearch 2.1.0
 ========================================================================
 - Added pdoParser support
@@ -52,7 +62,7 @@ SimpleSearch 1.8.0
 - Added support to ElasticSearch driver for using search fields
 - Added support to ElasticSearch driver for boosting results by a field value
 - Updated Elastica to v0.90.7.0
-- Added outputSeparator option 
+- Added outputSeparator option
 
 SimpleSearch 1.7.0
 ========================================================================
