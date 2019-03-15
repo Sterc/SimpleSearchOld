@@ -2,6 +2,10 @@ Changelog for SimpleSearch.
 
 SimpleSearch 2.1.0
 ========================================================================
+- Fix includeTVList bug to show normal search results as well.
+
+SimpleSearch 2.1.0
+========================================================================
 - Added pdoParser support
 - Fix XSS security issue
 
@@ -52,7 +56,7 @@ SimpleSearch 1.8.0
 - Added support to ElasticSearch driver for using search fields
 - Added support to ElasticSearch driver for boosting results by a field value
 - Updated Elastica to v0.90.7.0
-- Added outputSeparator option 
+- Added outputSeparator option
 
 SimpleSearch 1.7.0
 ========================================================================
