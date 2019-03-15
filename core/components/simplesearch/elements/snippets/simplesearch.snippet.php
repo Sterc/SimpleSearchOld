@@ -60,6 +60,7 @@ $facetLimit        = $modx->getOption('facetLimit', $scriptProperties, 5);
 $outputSeparator   = $modx->getOption('outputSeparator', $scriptProperties, "\n");
 $addSearchToLink   = (int) $modx->getOption('addSearchToLink', $scriptProperties, 0);
 $searchInLinkName  = $modx->getOption('searchInLinkName', $scriptProperties, 'search');
+$noResults = true;
 
 /* Get results */
 $response     = $search->getSearchResults($searchString, $scriptProperties);
@@ -145,6 +146,10 @@ foreach ($resultsTpl as $facetKey => $facetResults) {
     $placeholders[$facetKey.'.results'] = $resultSet;
     $placeholders[$facetKey.'.total']   = !empty($facetResults['total']) ? $facetResults['total'] : 0;
     $placeholders[$facetKey.'.key']     = $facetKey;
+
+    if ($placeholders[$facetKey.'.total'] !== 0) {
+        $noResults = false;
+    }
 }
 
 $placeholders['results']   = $placeholders[$activeFacet . '.results']; /* Set active facet results. */
@@ -173,7 +178,7 @@ $modx->setPlaceholder($placeholderPrefix . 'query', $searchString);
 $modx->setPlaceholder($placeholderPrefix . 'count', $response['total']);
 $modx->setPlaceholders($placeholders, $placeholderPrefix);
 
-if (empty($response['results'])) {
+if ($noResults) {
     $output = $search->getChunk($noResultsTpl, array(
         'query' => $searchString,
     ));
