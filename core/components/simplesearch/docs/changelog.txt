@@ -1,6 +1,12 @@
 Changelog for SimpleSearch.
 
-SimpleSearch 2.1.0
+SimpleSearch 2.1.2
+========================================================================
+- Show facet results when default has none.
+- Have all placeholders in no result page
+- Fix pagination for pageLimit & facet search
+
+SimpleSearch 2.1.1
 ========================================================================
 - Fix includeTVList bug to show normal search results as well.
 
