@@ -132,7 +132,7 @@ if (!empty($postHooks)) {
             foreach ($facetResults['results'] as $r) {
                 $r['idx']                           = $idx;
                 $fTpl                               = !empty($scriptProperties['tpl' . $facetKey]) ? $scriptProperties['tpl' . $facetKey] : $tpl;
-                $resultsTpl[$facetKey]['results'][] = $search->getChunk($fTpl,$r);
+                $resultsTpl[$facetKey]['results'][] = $search->getChunk($fTpl, $r);
                 $idx++;
             }
         }
@@ -142,7 +142,7 @@ if (!empty($postHooks)) {
 /* Set faceted results to placeholders for easy result positioning. */
 $output = array();
 foreach ($resultsTpl as $facetKey => $facetResults) {
-    $resultSet                          = implode($outputSeparator,$facetResults['results']);
+    $resultSet                          = implode($outputSeparator, $facetResults['results']);
     $placeholders[$facetKey.'.results'] = $resultSet;
     $placeholders[$facetKey.'.total']   = !empty($facetResults['total']) ? $facetResults['total'] : 0;
     $placeholders[$facetKey.'.key']     = $facetKey;
@@ -179,7 +179,7 @@ $modx->setPlaceholder($placeholderPrefix . 'count', $response['total']);
 $modx->setPlaceholders($placeholders, $placeholderPrefix);
 
 if ($noResults) {
-   $output = $search->getChunk($noResultsTpl, $placeholders);
+    $output = $search->getChunk($noResultsTpl, $placeholders);
 } else {
     $output = $search->getChunk($containerTpl, $placeholders);
 }
