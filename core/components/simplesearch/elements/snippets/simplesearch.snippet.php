@@ -152,7 +152,7 @@ $placeholders['total']     = !empty($resultsTpl[$activeFacet]['total']) ? $resul
 $placeholders['page']      = isset($_REQUEST[$offsetIndex]) ? ceil((int) $_REQUEST[$offsetIndex] / $perPage) + 1 : 1;
 $placeholders['pageCount'] = !empty($resultsTpl[$activeFacet]['total']) ? ceil($resultsTpl[$activeFacet]['total'] / $perPage) : 1;
 
-if (!empty($response['results'])) {
+if (!empty($placeholders['results'])) {
     /* add results found message */
     $placeholders['resultInfo'] = $modx->lexicon('simplesearch.results_found', array(
         'count' => $placeholders['total'],
