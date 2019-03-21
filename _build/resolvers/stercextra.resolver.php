@@ -1,5 +1,4 @@
 <?php
-$package = 'SimpleSearch';
 $url     = 'https://extras.sterc.nl/api/v1/packagedata';
 $params  = array();
 
@@ -24,7 +23,7 @@ $c->where(
 $c->where(
     array(
         array(
-            'modTransportPackage.package_name' => strtolower($package)
+            'modTransportPackage.signature:LIKE' => $options['namespace'] . '-%',
         ),
         'installed:IS NOT' => null
     )
@@ -42,22 +41,19 @@ if ($oldPackage) {
 }
 
 $version = '';
-if ($options['topic']) {
-    $topic     = trim($options['topic'], '/');
-    $topic     = explode('/', $topic);
-    $signature = end($topic);
-    $version   = str_replace(strtolower($package) . '-', '', $signature);
+if ($transport->version) {
+    $version = $transport->version;
 }
 
 $userNameObj = $modx->getObject(
     'modSystemSetting',
-    array('key' => strtolower($package) . '.user_name')
+    array('key' => $options['namespace'] . '.user_name')
 );
 $userName = ($userNameObj) ? $userNameObj->get('value') : '';
 
 $userEmailObj = $modx->getObject(
     'modSystemSetting',
-    array('key' => strtolower($package) . '.user_email')
+    array('key' => $options['namespace'] . '.user_email')
 );
 $userEmail = ($userEmailObj) ? $userEmailObj->get('value') : '';
 
@@ -75,18 +71,12 @@ switch ($options[xPDOTransport::PACKAGE_ACTION]) {
         break;
     case xPDOTransport::ACTION_UNINSTALL:
         $action = 'uninstall';
-
-        $version          = $oldVersion;
-        $setupOptionsPath = explode('/', $options['setup-options']);
-        $signature        = $setupOptionsPath[0];
-        $oldVersion       = str_replace(strtolower($package) . '-', '', $signature);
-
         break;
 }
 
 $params = array(
     'name'                 => $options['namespace'],
-    'url'                  => $_SERVER['SERVER_NAME'],
+    'url'                  => $modx->getOption('SERVER_NAME', $_SERVER, 'unknown'),
     'user_name'            => $userName,
     'user_email'           => $userEmail,
     'php_version'          => phpversion(),
