@@ -5,31 +5,27 @@ namespace Elastica\Cluster\Health;
 /**
  * Wraps status information for an index.
  *
- * @package Elastica
  * @author Ray Ward <ray.ward@bigcommerce.com>
- * @link http://www.elasticsearch.org/guide/reference/api/admin-cluster-health.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html
  */
 class Index
 {
     /**
-     * The name of the index.
-     *
-     * @var string
+     * @var string the name of the index
      */
     protected $_name;
 
     /**
-     * The index health data.
-     *
-     * @var array
+     * @var array the index health data
      */
     protected $_data;
 
     /**
-     * @param string $name The name of the index.
-     * @param array  $data The index health data.
+     * @param string $name the name of the index
+     * @param array  $data the index health data
      */
-    public function __construct($name, $data)
+    public function __construct(string $name, array $data)
     {
         $this->_name = $name;
         $this->_data = $data;
@@ -40,7 +36,7 @@ class Index
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->_name;
     }
@@ -48,9 +44,9 @@ class Index
     /**
      * Gets the status of the index.
      *
-     * @return string green, yellow or red.
+     * @return string green, yellow or red
      */
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->_data['status'];
     }
@@ -60,7 +56,7 @@ class Index
      *
      * @return int
      */
-    public function getNumberOfShards()
+    public function getNumberOfShards(): int
     {
         return $this->_data['number_of_shards'];
     }
@@ -70,7 +66,7 @@ class Index
      *
      * @return int
      */
-    public function getNumberOfReplicas()
+    public function getNumberOfReplicas(): int
     {
         return $this->_data['number_of_replicas'];
     }
@@ -80,7 +76,7 @@ class Index
      *
      * @return int
      */
-    public function getActivePrimaryShards()
+    public function getActivePrimaryShards(): int
     {
         return $this->_data['active_primary_shards'];
     }
@@ -90,7 +86,7 @@ class Index
      *
      * @return int
      */
-    public function getActiveShards()
+    public function getActiveShards(): int
     {
         return $this->_data['active_shards'];
     }
@@ -100,7 +96,7 @@ class Index
      *
      * @return int
      */
-    public function getRelocatingShards()
+    public function getRelocatingShards(): int
     {
         return $this->_data['relocating_shards'];
     }
@@ -110,7 +106,7 @@ class Index
      *
      * @return int
      */
-    public function getInitializingShards()
+    public function getInitializingShards(): int
     {
         return $this->_data['initializing_shards'];
     }
@@ -120,7 +116,7 @@ class Index
      *
      * @return int
      */
-    public function getUnassignedShards()
+    public function getUnassignedShards(): int
     {
         return $this->_data['unassigned_shards'];
     }
@@ -128,11 +124,11 @@ class Index
     /**
      * Gets the health of the shards in this index.
      *
-     * @return \Elastica\Cluster\Health\Shard[]
+     * @return Shard[]
      */
-    public function getShards()
+    public function getShards(): array
     {
-        $shards = array();
+        $shards = [];
         foreach ($this->_data['shards'] as $shardNumber => $shard) {
             $shards[] = new Shard($shardNumber, $shard);
         }

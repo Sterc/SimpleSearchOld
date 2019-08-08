@@ -2,7 +2,7 @@
 
 namespace Elastica\Bulk\Action;
 
-use Elastica\Bulk\Action;
+use Elastica\AbstractUpdateAction;
 use Elastica\Document;
 
 class IndexDocument extends AbstractDocument
@@ -13,10 +13,9 @@ class IndexDocument extends AbstractDocument
     protected $_opType = self::OP_TYPE_INDEX;
 
     /**
-     * @param \Elastica\Document $document
-     * @return \Elastica\Bulk\Action\IndexDocument
+     * {@inheritdoc}
      */
-    public function setDocument(Document $document)
+    public function setDocument(Document $document): AbstractDocument
     {
         parent::setDocument($document);
 
@@ -26,25 +25,19 @@ class IndexDocument extends AbstractDocument
     }
 
     /**
-     * @param \Elastica\Document $document
-     * @return array
+     * {@inheritdoc}
      */
-    protected function _getMetadataByDocument(Document $document)
+    protected function _getMetadata(AbstractUpdateAction $action): array
     {
-        $params = array(
-            'index',
-            'type',
-            'id',
+        return $action->getOptions([
+            '_index',
+            '_type',
+            '_id',
             'version',
             'version_type',
             'routing',
-            'percolate',
             'parent',
-            'ttl',
-            'timestamp',
-        );
-        $metadata = $document->getOptions($params, true);
-
-        return $metadata;
+            'retry_on_conflict',
+        ]);
     }
 }

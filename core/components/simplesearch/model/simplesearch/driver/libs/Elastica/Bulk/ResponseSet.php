@@ -7,9 +7,9 @@ use Elastica\Response as BaseResponse;
 class ResponseSet extends BaseResponse implements \Iterator, \Countable
 {
     /**
-     * @var \Elastica\Bulk\Response[]
+     * @var Response[]
      */
-    protected $_bulkResponses = array();
+    protected $_bulkResponses = [];
 
     /**
      * @var int
@@ -17,8 +17,8 @@ class ResponseSet extends BaseResponse implements \Iterator, \Countable
     protected $_position = 0;
 
     /**
-     * @param \Elastica\Response $response
-     * @param \Elastica\Bulk\Response[] $bulkResponses
+     * @param BaseResponse $response
+     * @param Response[]   $bulkResponses
      */
     public function __construct(BaseResponse $response, array $bulkResponses)
     {
@@ -28,104 +28,107 @@ class ResponseSet extends BaseResponse implements \Iterator, \Countable
     }
 
     /**
-     * @return \Elastica\Bulk\Response[]
+     * @return Response[]
      */
-    public function getBulkResponses()
+    public function getBulkResponses(): array
     {
         return $this->_bulkResponses;
     }
 
     /**
-     * Returns first found error
+     * Returns first found error.
      *
      * @return string
      */
-    public function getError()
+    public function getError(): string
     {
-        $error = '';
-
         foreach ($this->getBulkResponses() as $bulkResponse) {
             if ($bulkResponse->hasError()) {
-                $error = $bulkResponse->getError();
-                break;
+                return $bulkResponse->getError();
             }
         }
 
-        return $error;
+        return '';
+    }
+
+    /**
+     * Returns first found error (full array).
+     *
+     * @return array|string
+     */
+    public function getFullError()
+    {
+        foreach ($this->getBulkResponses() as $bulkResponse) {
+            if ($bulkResponse->hasError()) {
+                return $bulkResponse->getFullError();
+            }
+        }
+
+        return '';
     }
 
     /**
      * @return bool
      */
-    public function isOk()
+    public function isOk(): bool
     {
-        $return = true;
-
         foreach ($this->getBulkResponses() as $bulkResponse) {
             if (!$bulkResponse->isOk()) {
-                $return = false;
-                break;
+                return false;
             }
         }
 
-        return $return;
+        return true;
     }
 
     /**
      * @return bool
      */
-    public function hasError()
+    public function hasError(): bool
     {
-        $return = false;
-
         foreach ($this->getBulkResponses() as $bulkResponse) {
             if ($bulkResponse->hasError()) {
-                $return = true;
-                break;
+                return true;
             }
         }
 
-        return $return;
+        return false;
     }
 
     /**
-     * @return bool|\Elastica\Bulk\Response
+     * @return Response
      */
-    public function current()
+    public function current(): Response
     {
-        if ($this->valid()) {
-            return $this->_bulkResponses[$this->key()];
-        } else {
-            return false;
-        }
+        return $this->_bulkResponses[$this->key()];
     }
 
     /**
-     *
+     * {@inheritdoc}
      */
     public function next()
     {
-        $this->_position++;
+        ++$this->_position;
     }
 
     /**
-     * @return int
+     * {@inheritdoc}
      */
-    public function key()
+    public function key(): int
     {
         return $this->_position;
     }
 
     /**
-     * @return bool
+     * {@inheritdoc}
      */
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->_bulkResponses[$this->key()]);
     }
 
     /**
-     *
+     * {@inheritdoc}
      */
     public function rewind()
     {
@@ -133,10 +136,10 @@ class ResponseSet extends BaseResponse implements \Iterator, \Countable
     }
 
     /**
-     * @return int
+     * {@inheritdoc}
      */
-    public function count()
+    public function count(): int
     {
-        return count($this->_bulkResponses);
+        return \count($this->_bulkResponses);
     }
 }

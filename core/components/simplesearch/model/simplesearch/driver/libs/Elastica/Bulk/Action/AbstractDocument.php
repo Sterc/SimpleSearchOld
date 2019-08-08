@@ -2,19 +2,20 @@
 
 namespace Elastica\Bulk\Action;
 
+use Elastica\AbstractUpdateAction;
 use Elastica\Bulk\Action;
 use Elastica\Document;
-use Elastica\Script;
+use Elastica\Script\AbstractScript;
 
 abstract class AbstractDocument extends Action
 {
     /**
-     * @var \Elastica\Document|\Elastica\Script
+     * @var Document|AbstractScript
      */
     protected $_data;
 
     /**
-     * @param \Elastica\Document|\Elastica\Script $document
+     * @param Document|AbstractScript $document
      */
     public function __construct($document)
     {
@@ -22,14 +23,15 @@ abstract class AbstractDocument extends Action
     }
 
     /**
-     * @param \Elastica\Document $document
-     * @return \Elastica\Bulk\Action\AbstractDocument
+     * @param Document $document
+     *
+     * @return $this
      */
-    public function setDocument(Document $document)
+    public function setDocument(Document $document): self
     {
         $this->_data = $document;
 
-        $metadata = $this->_getMetadataByDocument($document);
+        $metadata = $this->_getMetadata($document);
 
         $this->setMetadata($metadata);
 
@@ -37,40 +39,39 @@ abstract class AbstractDocument extends Action
     }
 
     /**
-     * @param \Elastica\Script $script
-     * @return \Elastica\Bulk\Action\AbstractDocument
+     * @param AbstractScript $script
+     *
+     * @return $this
      */
-    public function setScript(Script $script)
+    public function setScript(AbstractScript $script): self
     {
-        if (!($this instanceof UpdateDocument)) {
-            throw new \BadMethodCallException("setScript() can only be used for UpdateDocument");
+        if (!$this instanceof UpdateDocument) {
+            throw new \BadMethodCallException('setScript() can only be used for UpdateDocument');
         }
 
         $this->_data = $script;
 
-        $metadata = $this->_getMetadataByScript($script);
+        $metadata = $this->_getMetadata($script);
         $this->setMetadata($metadata);
 
         return $this;
     }
 
     /**
-     * @param \Elastica\Script|\Elastica\Document $data
+     * @param AbstractScript|Document $data
+     *
      * @throws \InvalidArgumentException
-     * @return \Elastica\Bulk\Action\AbstractDocument
+     *
+     * @return $this
      */
-    public function setData($data)
+    public function setData($data): self
     {
-        if ($data instanceof Script) {
-
+        if ($data instanceof AbstractScript) {
             $this->setScript($data);
-
-        }else if ($data instanceof Document) {
-
+        } elseif ($data instanceof Document) {
             $this->setDocument($data);
-
-        }else{
-            throw new \InvalidArgumentException("Data should be a Document or a Script.");
+        } else {
+            throw new \InvalidArgumentException('Data should be a Document or a Script.');
         }
 
         return $this;
@@ -78,32 +79,34 @@ abstract class AbstractDocument extends Action
 
     /**
      * Note: This is for backwards compatibility.
-     * @return \Elastica\Document
+     *
+     * @return Document|null
      */
     public function getDocument()
     {
-        if ($this->_data instanceof Document) {
-            return $this->_data;
+        if (!$this->_data instanceof Document) {
+            return null;
         }
 
-        return null;
+        return $this->_data;
     }
 
     /**
      * Note: This is for backwards compatibility.
-     * @return \Elastica\Script
+     *
+     * @return AbstractScript|null
      */
     public function getScript()
     {
-        if ($this->_data instanceof Script) {
-            return $this->_data;
+        if (!$this->_data instanceof AbstractScript) {
+            return null;
         }
 
-        return null;
+        return $this->_data;
     }
 
     /**
-     * @return \Elastica\Document|\Elastica\Script
+     * @return Document|AbstractScript
      */
     public function getData()
     {
@@ -111,55 +114,61 @@ abstract class AbstractDocument extends Action
     }
 
     /**
-     * @param \Elastica\Document $document
+     * @param AbstractUpdateAction $source
+     *
      * @return array
      */
-    abstract protected function _getMetadataByDocument(Document $document);
+    abstract protected function _getMetadata(AbstractUpdateAction $source): array;
 
     /**
-     * @param \Elastica\Script $script
-     * @return array
+     * Creates a bulk action for a document or a script.
+     *
+     * The action can be index, update, create or delete based on the $opType param (by default index).
+     *
+     * @param Document|AbstractScript $data
+     * @param string                  $opType
+     *
+     * @return static
      */
-    protected function _getMetadataByScript(Script $script)
+    public static function create($data, string $opType = null): self
     {
-    }
+        //Check type
+        if (!$data instanceof Document && !$data instanceof AbstractScript) {
+            throw new \InvalidArgumentException('The data needs to be a Document or a Script.');
+        }
 
-    /**
-     * @param \Elastica\Document|\Elastica\Script $data
-     * @param string $opType
-     * @return \Elastica\Bulk\Action\AbstractDocument
-     */
-    public static function create($data, $opType = null)
-    {
-    	//Check type
-    	if (!($data instanceof Document) && !($data instanceof Script)) {
-    		throw new \InvalidArgumentException("The data needs to be a Document or a Script.");
-    	}
-    	
         if (null === $opType && $data->hasOpType()) {
             $opType = $data->getOpType();
         }
 
         //Check that scripts can only be used for updates
-        if ($data instanceof Script  && isset($opType) && $opType != self::OP_TYPE_UPDATE) {
-            throw new \InvalidArgumentException("When performing an update action, the data needs to be a Document or a Script.");
+        if ($data instanceof AbstractScript) {
+            if (null === $opType) {
+                $opType = self::OP_TYPE_UPDATE;
+            } elseif (self::OP_TYPE_UPDATE !== $opType) {
+                throw new \InvalidArgumentException('Scripts can only be used with the update operation type.');
+            }
         }
 
         switch ($opType) {
             case self::OP_TYPE_DELETE:
                 $action = new DeleteDocument($data);
                 break;
+
             case self::OP_TYPE_CREATE:
                 $action = new CreateDocument($data);
                 break;
+
             case self::OP_TYPE_UPDATE:
                 $action = new UpdateDocument($data);
                 break;
+
             case self::OP_TYPE_INDEX:
             default:
                 $action = new IndexDocument($data);
                 break;
         }
+
         return $action;
     }
 }

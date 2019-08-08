@@ -4,24 +4,25 @@ namespace Elastica\Bulk;
 
 use Elastica\Bulk;
 use Elastica\Index;
+use Elastica\JSON;
 use Elastica\Type;
 
 class Action
 {
     const OP_TYPE_CREATE = 'create';
-    const OP_TYPE_INDEX  = 'index';
+    const OP_TYPE_INDEX = 'index';
     const OP_TYPE_DELETE = 'delete';
     const OP_TYPE_UPDATE = 'update';
 
     /**
      * @var array
      */
-    public static $opTypes = array(
+    public static $opTypes = [
         self::OP_TYPE_CREATE,
         self::OP_TYPE_INDEX,
         self::OP_TYPE_DELETE,
-        self::OP_TYPE_UPDATE
-    );
+        self::OP_TYPE_UPDATE,
+    ];
 
     /**
      * @var string
@@ -31,19 +32,19 @@ class Action
     /**
      * @var array
      */
-    protected $_metadata = array();
+    protected $_metadata = [];
 
     /**
      * @var array
      */
-    protected $_source = array();
+    protected $_source = [];
 
     /**
      * @param string $opType
-     * @param array $metadata
-     * @param array $source
+     * @param array  $metadata
+     * @param array  $source
      */
-    public function __construct($opType = self::OP_TYPE_INDEX, array $metadata = array(), array $source = array())
+    public function __construct(string $opType = self::OP_TYPE_INDEX, array $metadata = [], array $source = [])
     {
         $this->setOpType($opType);
         $this->setMetadata($metadata);
@@ -52,9 +53,10 @@ class Action
 
     /**
      * @param string $type
-     * @return \Elastica\Bulk\Action
+     *
+     * @return $this
      */
-    public function setOpType($type)
+    public function setOpType(string $type): self
     {
         $this->_opType = $type;
 
@@ -64,16 +66,17 @@ class Action
     /**
      * @return string
      */
-    public function getOpType()
+    public function getOpType(): string
     {
         return $this->_opType;
     }
 
     /**
      * @param array $metadata
-     * @return \Elastica\Bulk\Action
+     *
+     * @return $this
      */
-    public function setMetadata(array $metadata)
+    public function setMetadata(array $metadata): self
     {
         $this->_metadata = $metadata;
 
@@ -83,7 +86,7 @@ class Action
     /**
      * @return array
      */
-    public function getMetadata()
+    public function getMetadata(): array
     {
         return $this->_metadata;
     }
@@ -91,16 +94,17 @@ class Action
     /**
      * @return array
      */
-    public function getActionMetadata()
+    public function getActionMetadata(): array
     {
-        return array($this->_opType => $this->getMetadata());
+        return [$this->_opType => $this->getMetadata()];
     }
 
     /**
-     * @param array $source
-     * @return \Elastica\Bulk\Action
+     * @param array|string $source
+     *
+     * @return $this
      */
-    public function setSource($source)
+    public function setSource($source): self
     {
         $this->_source = $source;
 
@@ -108,7 +112,7 @@ class Action
     }
 
     /**
-     * @return array
+     * @return array|string
      */
     public function getSource()
     {
@@ -118,16 +122,17 @@ class Action
     /**
      * @return bool
      */
-    public function hasSource()
+    public function hasSource(): bool
     {
         return !empty($this->_source);
     }
 
     /**
-     * @param string|\Elastica\Index $index
-     * @return \Elastica\Bulk\Action
+     * @param string|Index $index
+     *
+     * @return $this
      */
-    public function setIndex($index)
+    public function setIndex($index): self
     {
         if ($index instanceof Index) {
             $index = $index->getName();
@@ -138,10 +143,11 @@ class Action
     }
 
     /**
-     * @param string|\Elastica\Type $type
-     * @return \Elastica\Bulk\Action
+     * @param string|Type $type
+     *
+     * @return $this
      */
-    public function setType($type)
+    public function setType($type): self
     {
         if ($type instanceof Type) {
             $this->setIndex($type->getIndex()->getName());
@@ -153,10 +159,11 @@ class Action
     }
 
     /**
-     * @param string $id
-     * @return \Elastica\Bulk\Action
+     * @param string|int $id
+     *
+     * @return $this
      */
-    public function setId($id)
+    public function setId($id): self
     {
         $this->_metadata['_id'] = $id;
 
@@ -164,41 +171,63 @@ class Action
     }
 
     /**
+     * @param string|int $routing
+     *
+     * @return $this
+     */
+    public function setRouting($routing): self
+    {
+        $this->_metadata['routing'] = $routing;
+
+        return $this;
+    }
+
+    /**
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $data[] = $this->getActionMetadata();
         if ($this->hasSource()) {
             $data[] = $this->getSource();
         }
+
         return $data;
     }
 
     /**
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
-        $string = json_encode($this->getActionMetadata(), JSON_FORCE_OBJECT) . Bulk::DELIMITER;
+        $string = JSON::stringify($this->getActionMetadata(), JSON_FORCE_OBJECT).Bulk::DELIMITER;
         if ($this->hasSource()) {
             $source = $this->getSource();
-            if (is_string($source)) {
-                $string.= $source;
+            if (\is_string($source)) {
+                $string .= $source;
+            } elseif (\is_array($source) && \array_key_exists('doc', $source) && \is_string($source['doc'])) {
+                if (isset($source['doc_as_upsert'])) {
+                    $docAsUpsert = ', "doc_as_upsert": '.($source['doc_as_upsert'] ? 'true' : 'false');
+                } else {
+                    $docAsUpsert = '';
+                }
+                $string .= '{"doc": '.$source['doc'].$docAsUpsert.'}';
             } else {
-                $string.= json_encode($source);
+                $string .= JSON::stringify($source, JSON_UNESCAPED_UNICODE);
             }
-            $string.= Bulk::DELIMITER;
+            $string .= Bulk::DELIMITER;
         }
+
         return $string;
     }
 
     /**
-     * @param string $opType
+     * @param string|null $opType
+     *
      * @return bool
      */
-    public static function isValidOpType($opType)
+    public static function isValidOpType(string $opType = null): bool
     {
-        return in_array($opType, self::$opTypes);
+        return \in_array($opType, self::$opTypes, true);
     }
 }

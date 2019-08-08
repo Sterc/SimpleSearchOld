@@ -3,94 +3,103 @@
 namespace Elastica\Multi;
 
 use Elastica\Client;
+use Elastica\JSON;
 use Elastica\Request;
 use Elastica\Search as BaseSearch;
 
 /**
- * Elastica multi search
+ * Elastica multi search.
  *
- * @category Xodoa
- * @package Elastica
  * @author munkie
- * @link http://www.elasticsearch.org/guide/reference/api/multi-search.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-multi-search.html
  */
 class Search
 {
     /**
-     * @var array|\Elastica\Search[]
+     * @const string[] valid header options
      */
-    protected $_searches = array();
+    private static $HEADER_OPTIONS = [
+        'index',
+        'types',
+        'search_type',
+        'routing',
+        'preference',
+    ];
 
     /**
-     * @var array
+     * @var MultiBuilderInterface
      */
-    protected $_options = array();
+    private $_builder;
 
     /**
-     * @var \Elastica\Client
+     * @var Client
      */
     protected $_client;
 
     /**
-     * Constructs search object
-     *
-     * @param \Elastica\Client $client Client object
+     * @var array
      */
-    public function __construct(Client $client)
+    protected $_options = [];
+
+    /**
+     * @var BaseSearch[]
+     */
+    protected $_searches = [];
+
+    /**
+     * Constructs search object.
+     *
+     * @param Client                $client
+     * @param MultiBuilderInterface $builder
+     */
+    public function __construct(Client $client, MultiBuilderInterface $builder = null)
     {
-        $this->setClient($client);
+        $this->_builder = $builder ?? new MultiBuilder();
+        $this->_client = $client;
     }
 
     /**
-     * @return \Elastica\Client
+     * @return Client
      */
-    public function getClient()
+    public function getClient(): Client
     {
         return $this->_client;
     }
 
     /**
-     * @param  \Elastica\Client       $client
-     * @return \Elastica\Multi\Search
+     * @return $this
      */
-    public function setClient(Client $client)
+    public function clearSearches(): self
     {
-        $this->_client = $client;
+        $this->_searches = [];
 
         return $this;
     }
 
     /**
-     * @return \Elastica\Multi\Search
+     * @param BaseSearch $search
+     * @param string     $key
+     *
+     * @return $this
      */
-    public function clearSearches()
-    {
-        $this->_searches = array();
-
-        return $this;
-    }
-
-  /**
-   * @param  \Elastica\Search $search
-   * @param  string           $key      Optional key
-   * @return \Elastica\Multi\Search
-   */
-    public function addSearch(BaseSearch $search, $key = null)
+    public function addSearch(BaseSearch $search, string $key = null): self
     {
         if ($key) {
-          $this->_searches[$key] = $search;
+            $this->_searches[$key] = $search;
         } else {
-          $this->_searches[]     = $search;
+            $this->_searches[] = $search;
         }
 
         return $this;
     }
 
     /**
-     * @param  array|\Elastica\Search[] $searches
-     * @return \Elastica\Multi\Search
+     * @param BaseSearch[] $searches
+     *
+     * @return $this
      */
-    public function addSearches(array $searches)
+    public function addSearches(array $searches): self
     {
         foreach ($searches as $key => $search) {
             $this->addSearch($search, $key);
@@ -100,10 +109,11 @@ class Search
     }
 
     /**
-     * @param  array|\Elastica\Search[] $searches
-     * @return \Elastica\Multi\Search
+     * @param BaseSearch[] $searches
+     *
+     * @return $this
      */
-    public function setSearches(array $searches)
+    public function setSearches(array $searches): self
     {
         $this->clearSearches();
         $this->addSearches($searches);
@@ -112,18 +122,19 @@ class Search
     }
 
     /**
-     * @return array|\Elastica\Search[]
+     * @return BaseSearch[]
      */
-    public function getSearches()
+    public function getSearches(): array
     {
         return $this->_searches;
     }
 
     /**
-     * @param  string                $searchType
-     * @return \Elastica\Multi\Search
+     * @param string $searchType
+     *
+     * @return $this
      */
-    public function setSearchType($searchType)
+    public function setSearchType(string $searchType): self
     {
         $this->_options[BaseSearch::OPTION_SEARCH_TYPE] = $searchType;
 
@@ -131,9 +142,9 @@ class Search
     }
 
     /**
-     * @return \Elastica\Multi\ResultSet
+     * @return ResultSet
      */
-    public function search()
+    public function search(): ResultSet
     {
         $data = $this->_getData();
 
@@ -141,46 +152,53 @@ class Search
             '_msearch',
             Request::POST,
             $data,
-            $this->_options
+            $this->_options,
+        Request::NDJSON_CONTENT_TYPE
         );
 
-        return new ResultSet($response, $this->getSearches());
+        return $this->_builder->buildMultiResultSet($response, $this->getSearches());
     }
 
     /**
      * @return string
      */
-    protected function _getData()
+    protected function _getData(): string
     {
         $data = '';
         foreach ($this->getSearches() as $search) {
-            $data.= $this->_getSearchData($search);
+            $data .= $this->_getSearchData($search);
         }
 
         return $data;
     }
 
     /**
-     * @param  \Elastica\Search $search
+     * @param BaseSearch $search
+     *
      * @return string
      */
-    protected function _getSearchData(BaseSearch $search)
+    protected function _getSearchData(BaseSearch $search): string
     {
         $header = $this->_getSearchDataHeader($search);
-        $header = (empty($header)) ? new \stdClass : $header;
+
+        $header = (empty($header)) ? new \stdClass() : $header;
         $query = $search->getQuery();
 
-        $data = json_encode($header) . "\n";
-        $data.= json_encode($query->toArray()) . "\n";
+        // Keep other query options as part of the search body
+        $queryOptions = \array_diff_key($search->getOptions(), \array_flip(self::$HEADER_OPTIONS));
+
+        $data = JSON::stringify($header)."\n";
+        $data .= JSON::stringify($query->toArray() + $queryOptions)."\n";
 
         return $data;
     }
 
     /**
-     * @param  \Elastica\Search $search
+     * @param BaseSearch $search
+     *
      * @return array
      */
-    protected function _getSearchDataHeader(BaseSearch $search)
+    protected function _getSearchDataHeader(BaseSearch $search): array
     {
         $header = $search->getOptions();
 
@@ -192,6 +210,7 @@ class Search
             $header['types'] = $search->getTypes();
         }
 
-        return $header;
+        // Filter options accepted in the "header"
+        return \array_intersect_key($header, \array_flip(self::$HEADER_OPTIONS));
     }
 }

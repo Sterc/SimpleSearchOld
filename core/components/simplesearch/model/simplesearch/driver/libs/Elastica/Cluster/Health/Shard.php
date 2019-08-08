@@ -5,31 +5,27 @@ namespace Elastica\Cluster\Health;
 /**
  * Wraps status information for a shard.
  *
- * @package Elastica
  * @author Ray Ward <ray.ward@bigcommerce.com>
- * @link http://www.elasticsearch.org/guide/reference/api/admin-cluster-health.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html
  */
 class Shard
 {
     /**
-     * The shard index/number.
-     *
-     * @var int
+     * @var int the shard index/number
      */
     protected $_shardNumber;
 
     /**
-     * The shard health data.
-     *
-     * @var array
+     * @var array the shard health data
      */
     protected $_data;
 
     /**
-     * @param int   $shardNumber The shard index/number.
-     * @param array $data        The shard health data.
+     * @param int   $shardNumber the shard index/number
+     * @param array $data        the shard health data
      */
-    public function __construct($shardNumber, $data)
+    public function __construct(int $shardNumber, array $data)
     {
         $this->_shardNumber = $shardNumber;
         $this->_data = $data;
@@ -40,7 +36,7 @@ class Shard
      *
      * @return int
      */
-    public function getShardNumber()
+    public function getShardNumber(): int
     {
         return $this->_shardNumber;
     }
@@ -48,9 +44,9 @@ class Shard
     /**
      * Gets the status of this shard.
      *
-     * @return string green, yellow or red.
+     * @return string green, yellow or red
      */
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->_data['status'];
     }
@@ -60,7 +56,7 @@ class Shard
      *
      * @return bool
      */
-    public function isPrimaryActive()
+    public function isPrimaryActive(): bool
     {
         return $this->_data['primary_active'];
     }
@@ -70,9 +66,9 @@ class Shard
      *
      * @return bool
      */
-    public function isActive()
+    public function isActive(): bool
     {
-        return $this->_data['active_shards'] == 1;
+        return 1 === $this->_data['active_shards'];
     }
 
     /**
@@ -80,9 +76,9 @@ class Shard
      *
      * @return bool
      */
-    public function isRelocating()
+    public function isRelocating(): bool
     {
-        return $this->_data['relocating_shards'] == 1;
+        return 1 === $this->_data['relocating_shards'];
     }
 
     /**
@@ -90,9 +86,9 @@ class Shard
      *
      * @return bool
      */
-    public function isInitialized()
+    public function isInitialized(): bool
     {
-        return $this->_data['initializing_shards'] == 1;
+        return 1 === $this->_data['initializing_shards'];
     }
 
     /**
@@ -100,8 +96,8 @@ class Shard
      *
      * @return bool
      */
-    public function isUnassigned()
+    public function isUnassigned(): bool
     {
-        return $this->_data['unassigned_shards'] == 1;
+        return 1 === $this->_data['unassigned_shards'];
     }
 }

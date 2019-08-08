@@ -6,21 +6,19 @@ namespace Elastica\Query;
  * Simple query
  * Pure php array query. Can be used to create any not existing type of query.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
  */
 class Simple extends AbstractQuery
 {
     /**
-     * Query
+     * Query.
      *
      * @var array Query
      */
-    protected $_query = array();
+    protected $_query = [];
 
     /**
-     * Constructs a query based on an array
+     * Constructs a query based on an array.
      *
      * @param array $query Query array
      */
@@ -30,12 +28,13 @@ class Simple extends AbstractQuery
     }
 
     /**
-     * Sets new query array
+     * Sets new query array.
      *
-     * @param  array                     $query Query array
-     * @return \Elastica\Query\Simple Current object
+     * @param array $query Query array
+     *
+     * @return $this
      */
-    public function setQuery(array $query)
+    public function setQuery(array $query): self
     {
         $this->_query = $query;
 
@@ -43,12 +42,9 @@ class Simple extends AbstractQuery
     }
 
     /**
-     * Converts query to array
-     *
-     * @return array Query array
-     * @see \Elastica\Query\AbstractQuery::toArray()
+     * {@inheritdoc}
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->_query;
     }

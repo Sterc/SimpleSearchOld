@@ -7,42 +7,37 @@ use Elastica\Exception\Bulk\Response\ActionException;
 use Elastica\Exception\BulkException;
 
 /**
- * Bulk Response exception
- *
- * @category Xodoa
- * @package Elastica
+ * Bulk Response exception.
  */
 class ResponseException extends BulkException
 {
     /**
-     * Response
-     *
-     * @var \Elastica\Bulk\ResponseSet ResponseSet object
+     * @var ResponseSet ResponseSet object
      */
     protected $_responseSet;
 
     /**
-     * @var \Elastica\Exception\Bulk\Response\ActionException[]
+     * @var ActionException[]
      */
-    protected $_actionExceptions = array();
+    protected $_actionExceptions = [];
 
     /**
-     * Construct Exception
+     * Construct Exception.
      *
-     * @param \Elastica\Bulk\ResponseSet $responseSet
+     * @param ResponseSet $responseSet
      */
     public function __construct(ResponseSet $responseSet)
     {
         $this->_init($responseSet);
 
-        $message = 'Error in one or more bulk request actions:' . PHP_EOL . PHP_EOL;
-        $message.= $this->getActionExceptionsAsString();
+        $message = 'Error in one or more bulk request actions:'.PHP_EOL.PHP_EOL;
+        $message .= $this->getActionExceptionsAsString();
 
         parent::__construct($message);
     }
 
     /**
-     * @param \Elastica\Bulk\ResponseSet $responseSet
+     * @param ResponseSet $responseSet
      */
     protected function _init(ResponseSet $responseSet)
     {
@@ -56,23 +51,23 @@ class ResponseException extends BulkException
     }
 
     /**
-     * Returns bulk response set object
+     * Returns bulk response set object.
      *
-     * @return \Elastica\Bulk\ResponseSet
+     * @return ResponseSet
      */
-    public function getResponseSet()
+    public function getResponseSet(): ResponseSet
     {
         return $this->_responseSet;
     }
 
     /**
-     * Returns array of failed actions
+     * Returns array of failed actions.
      *
-     * @return array Array of failed actions
+     * @return string[] Array of failed actions
      */
-    public function getFailures()
+    public function getFailures(): array
     {
-        $errors = array();
+        $errors = [];
 
         foreach ($this->getActionExceptions() as $actionException) {
             $errors[] = $actionException->getMessage();
@@ -82,9 +77,9 @@ class ResponseException extends BulkException
     }
 
     /**
-     * @return \Elastica\Exception\Bulk\Response\ActionException[]
+     * @return ActionException[]
      */
-    public function getActionExceptions()
+    public function getActionExceptions(): array
     {
         return $this->_actionExceptions;
     }
@@ -92,12 +87,13 @@ class ResponseException extends BulkException
     /**
      * @return string
      */
-    public function getActionExceptionsAsString()
+    public function getActionExceptionsAsString(): string
     {
         $message = '';
         foreach ($this->getActionExceptions() as $actionException) {
-            $message.= $actionException->getMessage() . PHP_EOL;
+            $message .= $actionException->getMessage().PHP_EOL;
         }
+
         return $message;
     }
 }

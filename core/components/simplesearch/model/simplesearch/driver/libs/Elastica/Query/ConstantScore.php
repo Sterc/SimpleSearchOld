@@ -1,52 +1,48 @@
 <?php
 
 namespace Elastica\Query;
-use Elastica\Filter\AbstractFilter;
 
 /**
- * Constant score query
+ * Constant score query.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
- * @link http://www.elasticsearch.org/guide/reference/query-dsl/constant-score-query.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-constant-score-query.html
  */
 class ConstantScore extends AbstractQuery
 {
     /**
-     * Construct constant score query
+     * Construct constant score query.
      *
-     * @param null|\Elastica\Filter\AbstractFilter|array $filter
+     * @param AbstractQuery|null $filter
      */
-    public function __construct($filter = null)
+    public function __construct(AbstractQuery $filter = null)
     {
-        if (!is_null($filter)) {
+        if (null !== $filter) {
             $this->setFilter($filter);
         }
     }
 
     /**
-     * Set filter
+     * Set filter.
      *
-     * @param  array|\Elastica\Filter\AbstractFilter $filter
-     * @return \Elastica\Query\ConstantScore         Query object
+     * @param AbstractQuery $filter
+     *
+     * @return $this
      */
-    public function setFilter($filter)
+    public function setFilter(AbstractQuery $filter): self
     {
-        if ($filter instanceof AbstractFilter) {
-            $filter = $filter->toArray();
-        }
-
         return $this->setParam('filter', $filter);
     }
 
     /**
-     * Set boost
+     * Set boost.
      *
-     * @param  float                        $boost
-     * @return \Elastica\Query\ConstantScore
+     * @param float $boost
+     *
+     * @return $this
      */
-    public function setBoost($boost)
+    public function setBoost(float $boost): self
     {
         return $this->setParam('boost', $boost);
     }

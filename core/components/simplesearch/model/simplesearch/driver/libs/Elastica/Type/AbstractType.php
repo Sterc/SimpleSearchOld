@@ -5,7 +5,11 @@ namespace Elastica\Type;
 use Elastica\Client;
 use Elastica\Exception\InvalidException;
 use Elastica\Index;
+use Elastica\Query;
+use Elastica\ResultSet;
+use Elastica\Search;
 use Elastica\SearchableInterface;
+use Elastica\Type;
 use Elastica\Type as BaseType;
 use Elastica\Util;
 
@@ -24,8 +28,7 @@ use Elastica\Util;
  *    - $_indexParams: Parameters for the index
  *
  * @todo Add some settings examples to code
- * @category Xodoa
- * @package Elastica
+ *
  * @author Nicolas Ruflin <spam@ruflin.com>
  */
 abstract class AbstractType implements SearchableInterface
@@ -33,69 +36,70 @@ abstract class AbstractType implements SearchableInterface
     const MAX_DOCS_PER_REQUEST = 1000;
 
     /**
-     * Index name
+     * Index name.
      *
      * @var string Index name
      */
-    protected $_indexName = '';
+    protected $_indexName;
 
     /**
-     * Index name
+     * Index name.
      *
      * @var string Index name
      */
-    protected $_typeName = '';
+    protected $_typeName;
 
     /**
-     * Client
+     * Client.
      *
      * @var \Elastica\Client Client object
      */
-    protected $_client = null;
+    protected $_client;
 
     /**
-     * Index
+     * Index.
      *
      * @var \Elastica\Index Index object
      */
-    protected $_index = null;
+    protected $_index;
 
     /**
-     * Type
+     * Type.
      *
      * @var \Elastica\Type Type object
      */
-    protected $_type = null;
+    protected $_type;
 
     /**
-     * Mapping
+     * Mapping.
      *
      * @var array Mapping
      */
-    protected $_mapping = array();
+    protected $_mapping = [];
 
     /**
-     * Index params
+     * Index params.
      *
      * @var array Index  params
      */
-    protected $_indexParams = array();
+    protected $_indexParams = [];
 
     /**
-     * Source
+     * Source.
      *
-     * @var boolean Source
+     * @var bool Source
      */
     protected $_source = true;
 
     /**
-     * Creates index object with client connection
+     * Creates index object with client connection.
      *
      * Reads index and type name from protected vars _indexName and _typeName.
      * Has to be set in child class
      *
-     * @param  \Elastica\Client                     $client OPTIONAL Client object
-     * @throws \Elastica\Exception\InvalidException
+     * @param Client $client OPTIONAL Client object
+     *
+     * @throws InvalidException
      */
     public function __construct(Client $client = null)
     {
@@ -117,83 +121,90 @@ abstract class AbstractType implements SearchableInterface
     }
 
     /**
-     * Creates the index and sets the mapping for this type
+     * Creates the index and sets the mapping for this type.
      *
      * @param bool $recreate OPTIONAL Recreates the index if true (default = false)
      */
-    public function create($recreate = false)
+    public function create(bool $recreate = false)
     {
         $this->getIndex()->create($this->_indexParams, $recreate);
 
         $mapping = new Mapping($this->getType());
         $mapping->setProperties($this->_mapping);
-        $mapping->setSource(array('enabled' => $this->_source));
+        $mapping->setSource(['enabled' => $this->_source]);
         $mapping->send();
     }
 
     /**
-     * @param \Elastica\Query $query
-     * @param array|int $options
-     * @return \Elastica\Search
+     * @param string|Query $query
+     * @param array|int    $options
+     *
+     * @return Search
      */
-    public function createSearch($query = '', $options = null)
+    public function createSearch($query = '', $options = null): Search
     {
         return $this->getType()->createSearch($query, $options);
     }
 
     /**
-     * Search on the type
+     * Search on the type.
      *
-     * @param  string|array|\Elastica\Query $query Array with all query data inside or a Elastica\Query object
-     * @return \Elastica\ResultSet          ResultSet with all results inside
+     * @param string|array|Query $query   Array with all query data inside or a Elastica\Query object
+     * @param int|array          $options
+     *
+     * @return ResultSet with all results inside
+     *
      * @see \Elastica\SearchableInterface::search
      */
-    public function search($query = '', $options = null)
+    public function search($query = '', $options = null): ResultSet
     {
         return $this->getType()->search($query, $options = null);
     }
 
     /**
-     * Count docs in the type based on query
+     * Count docs in the type based on query.
      *
-     * @param  string|array|\Elastica\Query $query Array with all query data inside or a Elastica\Query object
-     * @return int                         number of documents matching the query
+     * @param string|array|Query $query Array with all query data inside or a Elastica\Query object
+     *
+     * @return int number of documents matching the query
+     *
      * @see \Elastica\SearchableInterface::count
      */
-    public function count($query = '')
+    public function count($query = ''): int
     {
         return $this->getType()->count($query);
     }
 
     /**
-     * Returns the search index
+     * Returns the search index.
      *
-     * @return \Elastica\Index Index object
+     * @return Index Index object
      */
-    public function getIndex()
+    public function getIndex(): Index
     {
         return $this->_index;
     }
 
     /**
-     * Returns type object
+     * Returns type object.
      *
-     * @return \Elastica\Type Type object
+     * @return Type Type object
      */
-    public function getType()
+    public function getType(): Type
     {
         return $this->_type;
     }
 
     /**
-     * Converts given time to format: 1995-12-31T23:59:59Z
+     * Converts given time to format: 1995-12-31T23:59:59Z.
      *
      * This is the lucene date format
      *
-     * @param  int    $date Date input (could be string etc.) -> must be supported by strtotime
+     * @param int $date Date input (could be string etc.) -> must be supported by strtotime
+     *
      * @return string Converted date string
      */
-    public function convertDate($date)
+    public function convertDate(int $date): string
     {
         return Util::convertDate($date);
     }

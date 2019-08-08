@@ -1,44 +1,44 @@
 <?php
 
 namespace Elastica\Index;
+
 use Elastica\Index as BaseIndex;
-use Elastica\Request;
+use Elastica\Response;
 
 /**
- * Elastica index stats object
+ * Elastica index stats object.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
- * @link http://www.elasticsearch.org/guide/reference/api/admin-indices-stats.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-stats.html
  */
 class Stats
 {
     /**
-     * Response
+     * Response.
      *
-     * @var \Elastica\Response Response object
+     * @var Response Response object
      */
-    protected $_response = null;
+    protected $_response;
 
     /**
-     * Stats info
+     * Stats info.
      *
      * @var array Stats info
      */
-    protected $_data = array();
+    protected $_data = [];
 
     /**
-     * Index
+     * Index.
      *
-     * @var \Elastica\Index Index object
+     * @var BaseIndex Index object
      */
-    protected $_index = null;
+    protected $_index;
 
     /**
-     * Construct
+     * Construct.
      *
-     * @param \Elastica\Index $index Index object
+     * @param BaseIndex $index Index object
      */
     public function __construct(BaseIndex $index)
     {
@@ -47,11 +47,11 @@ class Stats
     }
 
     /**
-     * Returns the raw stats info
+     * Returns the raw stats info.
      *
      * @return array Stats info
      */
-    public function getData()
+    public function getData(): array
     {
         return $this->_data;
     }
@@ -66,7 +66,7 @@ class Stats
     {
         $data = $this->getData();
 
-        foreach (func_get_args() as $arg) {
+        foreach (\func_get_args() as $arg) {
             if (isset($data[$arg])) {
                 $data = $data[$arg];
             } else {
@@ -78,32 +78,31 @@ class Stats
     }
 
     /**
-     * Returns the index object
+     * Returns the index object.
      *
-     * @return \Elastica\Index Index object
+     * @return BaseIndex Index object
      */
-    public function getIndex()
+    public function getIndex(): BaseIndex
     {
         return $this->_index;
     }
 
     /**
-     * Returns response object
+     * Returns response object.
      *
-     * @return \Elastica\Response Response object
+     * @return Response Response object
      */
-    public function getResponse()
+    public function getResponse(): Response
     {
         return $this->_response;
     }
 
     /**
-     * Reloads all status data of this object
+     * Reloads all status data of this object.
      */
     public function refresh()
     {
-        $path = '_stats';
-        $this->_response = $this->getIndex()->request($path, Request::GET);
+        $this->_response = $this->getIndex()->requestEndpoint(new \Elasticsearch\Endpoints\Indices\Stats());
         $this->_data = $this->getResponse()->getData();
     }
 }

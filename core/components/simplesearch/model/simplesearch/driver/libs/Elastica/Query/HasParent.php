@@ -1,62 +1,77 @@
 <?php
 
 namespace Elastica\Query;
+
 use Elastica\Query as BaseQuery;
 
 /**
- * Returns child documents having parent docs matching the query
+ * Returns child documents having parent docs matching the query.
  *
- * @category Xodoa
- * @package Elastica
- * @link http://www.elasticsearch.org/guide/reference/query-dsl/has-parent-query.html
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-has-parent-query.html
  */
 class HasParent extends AbstractQuery
 {
     /**
-     * Construct HasChild Query
+     * Construct HasChild Query.
      *
-     * @param string|\Elastica\Query $query Query string or a Elastica\Query object
-     * @param string                $type  Parent document type
+     * @param string|BaseQuery|AbstractQuery $query
+     * @param string                         $type  Parent document type
      */
-    public function __construct($query, $type)
+    public function __construct($query, string $type)
     {
         $this->setQuery($query);
         $this->setType($type);
     }
 
     /**
-     * Sets query object
+     * Sets query object.
      *
-     * @param  string|\Elastica\Query|\Elastica\Query\AbstractQuery $query
-     * @return \Elastica\Filter\HasParent
+     * @param string|BaseQuery|AbstractQuery $query
+     *
+     * @return $this
      */
-    public function setQuery($query)
+    public function setQuery($query): self
     {
-        $query = BaseQuery::create($query);
-        $data = $query->toArray();
-
-        return $this->setParam('query', $data['query']);
+        return $this->setParam('query', BaseQuery::create($query));
     }
 
     /**
-     * Set type of the parent document
+     * Set type of the parent document.
      *
-     * @param  string                          $type Parent document type
-     * @return \Elastica\Filter\HasParent Current object
+     * @param string $type Parent document type
+     *
+     * @return $this
      */
-    public function setType($type)
+    public function setType(string $type): self
     {
-        return $this->setParam('type', $type);
+        return $this->setParam('parent_type', $type);
     }
 
     /**
-     * Sets the scope
+     * Sets the scope.
      *
-     * @param  string                          $scope Scope
-     * @return \Elastica\Filter\HasParent Current object
+     * @param string $scope Scope
+     *
+     * @return $this
      */
-    public function setScope($scope)
+    public function setScope(string $scope): self
     {
         return $this->setParam('_scope', $scope);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        $baseName = $this->_getBaseName();
+
+        if (isset($array[$baseName]['query'])) {
+            $array[$baseName]['query'] = $array[$baseName]['query']['query'];
+        }
+
+        return $array;
     }
 }

@@ -3,23 +3,22 @@
 namespace Elastica\Query;
 
 /**
- * Wildcard query
+ * Wildcard query.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
- * @link http://www.elasticsearch.org/guide/reference/query-dsl/wildcard-query.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
  */
 class Wildcard extends AbstractQuery
 {
     /**
-     * Construct wildcard query
+     * Construct wildcard query.
      *
      * @param string $key   OPTIONAL Wildcard key
      * @param string $value OPTIONAL Wildcard value
      * @param float  $boost OPTIONAL Boost value (default = 1)
      */
-    public function __construct($key = '', $value = null, $boost = 1.0)
+    public function __construct(string $key = '', string $value = null, float $boost = 1.0)
     {
         if (!empty($key)) {
             $this->setValue($key, $value, $boost);
@@ -27,15 +26,16 @@ class Wildcard extends AbstractQuery
     }
 
     /**
-     * Sets the query expression for a key with its boost value
+     * Sets the query expression for a key with its boost value.
      *
-     * @param  string                       $key
-     * @param  string                       $value
-     * @param  float                        $boost
-     * @return \Elastica\Query\Wildcard
+     * @param string $key
+     * @param string $value
+     * @param float  $boost
+     *
+     * @return $this
      */
-    public function setValue($key, $value, $boost = 1.0)
+    public function setValue(string $key, string $value, float $boost = 1.0): self
     {
-        return $this->setParam($key, array('value' => $value, 'boost' => $boost));
+        return $this->setParam($key, ['value' => $value, 'boost' => $boost]);
     }
 }
