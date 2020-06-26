@@ -29,7 +29,7 @@ switch ($modx->event->name) {
         $action        = 'index';
         $resourceArray = $scriptProperties['resource']->toArray();
 
-        if ($resourceArray['published'] === 1 && $resourceArray['deleted'] === 0) {
+        if ($resourceArray['published'] === true && $resourceArray['deleted'] === false) {
             $action = 'index';
             foreach ($_POST as $key => $value) {
                 if (substr($key,0,2) === 'tv') {

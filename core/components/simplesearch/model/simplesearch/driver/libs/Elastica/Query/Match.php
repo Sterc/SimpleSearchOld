@@ -3,39 +3,60 @@
 namespace Elastica\Query;
 
 /**
- * Match query
+ * Match query.
  *
- * @category Xodoa
- * @package Elastica
  * @author F21
- * @link http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html
+ * @author WONG Wing Lun <luiges90@gmail.com>
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html
  */
 class Match extends AbstractQuery
 {
+    const OPERATOR_OR = 'or';
+    const OPERATOR_AND = 'and';
+
+    const ZERO_TERM_NONE = 'none';
+    const ZERO_TERM_ALL = 'all';
+
+    const FUZZINESS_AUTO = 'AUTO';
+
     /**
-     * Sets a param for the message array
-     *
-     * @param  string                    $field
-     * @param  mixed                     $values
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param mixed  $values
      */
-    public function setField($field, $values)
+    public function __construct(string $field = null, $values = null)
+    {
+        if (null !== $field && null !== $values) {
+            $this->setParam($field, $values);
+        }
+    }
+
+    /**
+     * Sets a param for the message array.
+     *
+     * @param string $field
+     * @param mixed  $values
+     *
+     * @return $this
+     */
+    public function setField(string $field, $values): self
     {
         return $this->setParam($field, $values);
     }
 
     /**
-     * Sets a param for the given field
+     * Sets a param for the given field.
      *
-     * @param  string                    $field
-     * @param  string                    $key
-     * @param  string                    $value
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param string $key
+     * @param string $value
+     *
+     * @return $this
      */
-    public function setFieldParam($field, $key, $value)
+    public function setFieldParam(string $field, string $key, string $value): self
     {
         if (!isset($this->_params[$field])) {
-            $this->_params[$field] = array();
+            $this->_params[$field] = [];
         }
 
         $this->_params[$field][$key] = $value;
@@ -44,125 +65,151 @@ class Match extends AbstractQuery
     }
 
     /**
-     * Sets the query string
+     * Sets the query string.
      *
-     * @param  string                    $field
-     * @param  string                    $query
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param string $query
+     *
+     * @return $this
      */
-    public function setFieldQuery($field, $query)
+    public function setFieldQuery(string $field, string $query): self
     {
         return $this->setFieldParam($field, 'query', $query);
     }
 
     /**
-     * Set field type
+     * Set field operator.
      *
-     * @param  string                    $field
-     * @param  string                    $type
-     * @return \Elastica\Query\Match
-     */
-    public function setFieldType($field, $type)
-    {
-        return $this->setFieldParam($field, 'type', $type);
-    }
-
-    /**
-     * Set field operator
+     * @param string $field
+     * @param string $operator
      *
-     * @param  string                    $field
-     * @param  string                    $operator
-     * @return \Elastica\Query\Match
+     * @return $this
      */
-    public function setFieldOperator($field, $operator)
+    public function setFieldOperator(string $field, string $operator = self::OPERATOR_OR): self
     {
         return $this->setFieldParam($field, 'operator', $operator);
     }
 
     /**
-     * Set field analyzer
+     * Set field analyzer.
      *
-     * @param  string                    $field
-     * @param  string                    $analyzer
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param string $analyzer
+     *
+     * @return $this
      */
-    public function setFieldAnalyzer($field, $analyzer)
+    public function setFieldAnalyzer(string $field, string $analyzer): self
     {
         return $this->setFieldParam($field, 'analyzer', $analyzer);
     }
 
     /**
-     * Set field boost value
+     * Set field boost value.
      *
      * If not set, defaults to 1.0.
      *
-     * @param  string                    $field
-     * @param  float                     $boost
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param float  $boost
+     *
+     * @return $this
      */
-    public function setFieldBoost($field, $boost = 1.0)
+    public function setFieldBoost(string $field, float $boost = 1.0): self
     {
-        return $this->setFieldParam($field, 'boost', (float) $boost);
+        return $this->setFieldParam($field, 'boost', $boost);
     }
 
     /**
-     * Set field minimum should match
+     * Set field minimum should match.
      *
-     * @param  string                    $field
-     * @param  int|string                       $minimumShouldMatch
-     * @return \Elastica\Query\Match
-     * @link Possible values for minimum_should_match http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-minimum-should-match.html
+     * @param string     $field
+     * @param int|string $minimumShouldMatch
+     *
+     * @return $this
+     *
+     * @see Possible values for minimum_should_match https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-minimum-should-match.html
      */
-    public function setFieldMinimumShouldMatch($field, $minimumShouldMatch)
+    public function setFieldMinimumShouldMatch(string $field, $minimumShouldMatch): self
     {
         return $this->setFieldParam($field, 'minimum_should_match', $minimumShouldMatch);
     }
 
     /**
-     * Set field fuzziness
+     * Set field fuzziness.
      *
-     * @param  string                    $field
-     * @param  float                     $fuzziness
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param mixed  $fuzziness
+     *
+     * @return $this
      */
-    public function setFieldFuzziness($field, $fuzziness)
+    public function setFieldFuzziness(string $field, $fuzziness): self
     {
-        return $this->setFieldParam($field, 'fuzziness', (float) $fuzziness);
+        return $this->setFieldParam($field, 'fuzziness', $fuzziness);
     }
 
     /**
-     * Set field fuzzy rewrite
+     * Set field fuzzy rewrite.
      *
-     * @param  string                    $field
-     * @param  string                    $fuzzyRewrite
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param string $fuzzyRewrite
+     *
+     * @return $this
      */
-    public function setFieldFuzzyRewrite($field, $fuzzyRewrite)
+    public function setFieldFuzzyRewrite(string $field, string $fuzzyRewrite): self
     {
         return $this->setFieldParam($field, 'fuzzy_rewrite', $fuzzyRewrite);
     }
 
     /**
-     * Set field prefix length
+     * Set field prefix length.
      *
-     * @param  string                    $field
-     * @param  int                       $prefixLength
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param int    $prefixLength
+     *
+     * @return $this
      */
-    public function setFieldPrefixLength($field, $prefixLength)
+    public function setFieldPrefixLength(string $field, int $prefixLength): self
     {
-        return $this->setFieldParam($field, 'prefix_length', (int) $prefixLength);
+        return $this->setFieldParam($field, 'prefix_length', $prefixLength);
     }
 
     /**
-     * Set field max expansions
+     * Set field max expansions.
      *
-     * @param  string                    $field
-     * @param  int                       $maxExpansions
-     * @return \Elastica\Query\Match
+     * @param string $field
+     * @param int    $maxExpansions
+     *
+     * @return $this
      */
-    public function setFieldMaxExpansions($field, $maxExpansions)
+    public function setFieldMaxExpansions(string $field, int $maxExpansions): self
     {
-        return $this->setFieldParam($field, 'max_expansions', (int) $maxExpansions);
+        return $this->setFieldParam($field, 'max_expansions', $maxExpansions);
+    }
+
+    /**
+     * Set zero terms query.
+     *
+     * If not set, default to 'none'
+     *
+     * @param string $field
+     * @param string $zeroTermQuery
+     *
+     * @return $this
+     */
+    public function setFieldZeroTermsQuery(string $field, string $zeroTermQuery = self::ZERO_TERM_NONE): self
+    {
+        return $this->setFieldParam($field, 'zero_terms_query', $zeroTermQuery);
+    }
+
+    /**
+     * Set cutoff frequency.
+     *
+     * @param string $field
+     * @param float  $cutoffFrequency
+     *
+     * @return $this
+     */
+    public function setFieldCutoffFrequency(string $field, float $cutoffFrequency): self
+    {
+        return $this->setFieldParam($field, 'cutoff_frequency', $cutoffFrequency);
     }
 }

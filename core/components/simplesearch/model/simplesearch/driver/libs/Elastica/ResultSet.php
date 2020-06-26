@@ -1,118 +1,63 @@
 <?php
 
 namespace Elastica;
+
 use Elastica\Exception\InvalidException;
 
 /**
- * Elastica result set
+ * Elastica result set.
  *
  * List of all hits that are returned for a search on elasticsearch
  * Result set implements iterator
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
  */
 class ResultSet implements \Iterator, \Countable, \ArrayAccess
 {
     /**
-     * Results
-     *
-     * @var array Results
-     */
-    protected $_results = array();
-
-    /**
-    * Suggests
-    *
-    * @var array Suggests
-    */
-    protected $_suggests = array();
-
-    /**
-     * Current position
+     * Current position.
      *
      * @var int Current position
      */
-    protected $_position = 0;
+    private $_position = 0;
 
     /**
-     * Response
+     * Query.
      *
-     * @var \Elastica\Response Response object
+     * @var Query Query object
      */
-    protected $_response = null;
+    private $_query;
 
     /**
-     * Query
+     * Response.
      *
-     * @var \Elastica\Query Query object
+     * @var Response Response object
      */
-    protected $_query;
+    private $_response;
 
     /**
-     * @var int
-     */
-    protected $_took = 0;
-
-    /**
-     * @var boolean
-     */
-    protected $_timedOut = false;
-
-    /**
-     * @var int
-     */
-    protected $_totalHits = 0;
-
-    /**
-     * @var float
-     */
-    protected $_maxScore = 0;
-
-    /**
-     * Constructs ResultSet object
+     * Results.
      *
-     * @param \Elastica\Response $response Response object
-     * @param \Elastica\Query    $query    Query object
+     * @var Result[] Results
      */
-    public function __construct(Response $response, Query $query)
+    private $_results = [];
+
+    /**
+     * Constructs ResultSet object.
+     *
+     * @param Response $response Response object
+     * @param Query    $query    Query object
+     * @param Result[] $results
+     */
+    public function __construct(Response $response, Query $query, $results)
     {
-        $this->rewind();
-        $this->_init($response);
         $this->_query = $query;
-    }
-
-    /**
-     * Loads all data into the results object (initialisation)
-     *
-     * @param \Elastica\Response $response Response object
-     */
-    protected function _init(Response $response)
-    {
         $this->_response = $response;
-        $result = $response->getData();
-        $this->_totalHits = isset($result['hits']['total']) ? $result['hits']['total'] : 0;
-        $this->_maxScore = isset($result['hits']['max_score']) ? $result['hits']['max_score'] : 0;
-        $this->_took = isset($result['took']) ? $result['took'] : 0;
-        $this->_timedOut = !empty($result['timed_out']);
-        if (isset($result['hits']['hits'])) {
-            foreach ($result['hits']['hits'] as $hit) {
-                $this->_results[] = new Result($hit);
-            }
-        }
-
-        foreach($result as $key => $value) {
-            if($key != '_shards') {
-                if(isset($value[0]['options']) && count($value[0]['options'])>0) {
-                    $this->_suggests[$key] = $value[0];
-                }
-            }
-        }
+        $this->_results = $results;
     }
 
     /**
-     * Returns all results
+     * Returns all results.
      *
      * @return Result[] Results
      */
@@ -122,83 +67,139 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-    * Return all suggests
-    *
-    * @return Suggest[] Suggests
-    */
-    public function getSuggests() 
+     * Returns all Documents.
+     *
+     * @return array Documents \Elastica\Document
+     */
+    public function getDocuments()
     {
-        return $this->_suggests;
+        $documents = [];
+        foreach ($this->_results as $doc) {
+            $documents[] = $doc->getDocument();
+        }
+
+        return $documents;
     }
 
     /**
-     * Returns whether facets exist
+     * Returns true if the response contains suggestion results; false otherwise.
      *
-     * @return boolean Facet existence
+     * @return bool
      */
-    public function hasFacets()
+    public function hasSuggests()
     {
         $data = $this->_response->getData();
 
-        return isset($data['facets']);
+        return isset($data['suggest']);
     }
 
     /**
-     * Returns all facets results
+     * Return all suggests.
      *
-     * @return array Facet results
+     * @return array suggest results
      */
-    public function getFacets()
+    public function getSuggests()
     {
         $data = $this->_response->getData();
 
-        return isset($data['facets']) ? $data['facets'] : array();
+        return $data['suggest'] ?? [];
     }
 
     /**
-     * Returns the total number of found hits
+     * Returns whether aggregations exist.
+     *
+     * @return bool Aggregation existence
+     */
+    public function hasAggregations()
+    {
+        $data = $this->_response->getData();
+
+        return isset($data['aggregations']);
+    }
+
+    /**
+     * Returns all aggregation results.
+     *
+     * @return array
+     */
+    public function getAggregations()
+    {
+        $data = $this->_response->getData();
+
+        return $data['aggregations'] ?? [];
+    }
+
+    /**
+     * Retrieve a specific aggregation from this result set.
+     *
+     * @param string $name the name of the desired aggregation
+     *
+     * @throws Exception\InvalidException if an aggregation by the given name cannot be found
+     *
+     * @return array
+     */
+    public function getAggregation($name)
+    {
+        $data = $this->_response->getData();
+
+        if (isset($data['aggregations']) && isset($data['aggregations'][$name])) {
+            return $data['aggregations'][$name];
+        }
+        throw new InvalidException("This result set does not contain an aggregation named {$name}.");
+    }
+
+    /**
+     * Returns the total number of found hits.
      *
      * @return int Total hits
      */
     public function getTotalHits()
     {
-        return (int) $this->_totalHits;
+        $data = $this->_response->getData();
+
+        return (int) ($data['hits']['total']['value'] ?? 0);
     }
 
     /**
-     * Returns the max score of the results found
+     * Returns the max score of the results found.
      *
      * @return float Max Score
      */
     public function getMaxScore()
     {
-        return (float) $this->_maxScore;
+        $data = $this->_response->getData();
+
+        return (float) ($data['hits']['max_score'] ?? 0);
     }
 
     /**
-    * Returns the total number of ms for this search to complete
-    *
-    * @return int Total time
-    */
+     * Returns the total number of ms for this search to complete.
+     *
+     * @return int Total time
+     */
     public function getTotalTime()
     {
-        return (int) $this->_took;
+        $data = $this->_response->getData();
+
+        return $data['took'] ?? 0;
     }
 
     /**
-    * Returns true iff the query has timed out
-    *
-    * @return bool Timed out
-    */
+     * Returns true if the query has timed out.
+     *
+     * @return bool Timed out
+     */
     public function hasTimedOut()
     {
-        return (bool) $this->_timedOut;
+        $data = $this->_response->getData();
+
+        return !empty($data['timed_out']);
     }
 
     /**
-     * Returns response object
+     * Returns response object.
      *
-     * @return \Elastica\Response Response object
+     * @return Response Response object
      */
     public function getResponse()
     {
@@ -206,7 +207,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * @return \Elastica\Query
+     * @return Query
      */
     public function getQuery()
     {
@@ -214,51 +215,45 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Returns size of current set
+     * Returns size of current set.
      *
      * @return int Size of set
      */
     public function count()
     {
-        return sizeof($this->_results);
+        return \count($this->_results);
     }
 
     /**
-     * Returns size of current suggests
+     * Returns size of current suggests.
      *
      * @return int Size of suggests
      */
     public function countSuggests()
     {
-        return sizeof($this->_suggests);
+        return \sizeof($this->getSuggests());
     }
 
     /**
-     * Returns the current object of the set
+     * Returns the current object of the set.
      *
-     * @return \Elastica\Result|bool Set object or false if not valid (no more entries)
+     * @return \Elastica\Result Set object
      */
     public function current()
     {
-        if ($this->valid()) {
-            return $this->_results[$this->key()];
-        } else {
-            return false;
-        }
+        return $this->_results[$this->key()];
     }
 
     /**
-     * Sets pointer (current) to the next item of the set
+     * Sets pointer (current) to the next item of the set.
      */
     public function next()
     {
-        $this->_position++;
-
-        return $this->current();
+        ++$this->_position;
     }
 
     /**
-     * Returns the position of the current entry
+     * Returns the position of the current entry.
      *
      * @return int Current position
      */
@@ -268,7 +263,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Check if an object exists at the current position
+     * Check if an object exists at the current position.
      *
      * @return bool True if object exists
      */
@@ -278,7 +273,7 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Resets position to 0, restarts iterator
+     * Resets position to 0, restarts iterator.
      */
     public function rewind()
     {
@@ -286,11 +281,13 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Whether a offset exists
-     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     * Whether a offset exists.
      *
-     * @param   integer $offset
-     * @return  boolean true on success or false on failure.
+     * @see http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
+     * @param int $offset
+     *
+     * @return bool true on success or false on failure
      */
     public function offsetExists($offset)
     {
@@ -298,48 +295,54 @@ class ResultSet implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
-     * Offset to retrieve
-     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     * Offset to retrieve.
      *
-     * @param   integer $offset
-     * @throws  Exception\InvalidException
-     * @return  Result|null
+     * @see http://php.net/manual/en/arrayaccess.offsetget.php
+     *
+     * @param int $offset
+     *
+     * @throws Exception\InvalidException If offset doesn't exist
+     *
+     * @return Result
      */
     public function offsetGet($offset)
     {
         if ($this->offsetExists($offset)) {
             return $this->_results[$offset];
-        } else {
-            throw new InvalidException("Offset does not exist.");
         }
+
+        throw new InvalidException('Offset does not exist.');
     }
 
     /**
-     * Offset to set
-     * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     * Offset to set.
      *
-     * @param   integer $offset
-     * @param   Result  $value
-     * @throws  Exception\InvalidException
+     * @see http://php.net/manual/en/arrayaccess.offsetset.php
+     *
+     * @param int    $offset
+     * @param Result $value
+     *
+     * @throws Exception\InvalidException
      */
     public function offsetSet($offset, $value)
     {
         if (!($value instanceof Result)) {
-            throw new InvalidException("ResultSet is a collection of Result only.");
+            throw new InvalidException('ResultSet is a collection of Result only.');
         }
 
         if (!isset($this->_results[$offset])) {
-            throw new InvalidException("Offset does not exist.");
+            throw new InvalidException('Offset does not exist.');
         }
 
         $this->_results[$offset] = $value;
     }
 
     /**
-     * Offset to unset
-     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     * Offset to unset.
      *
-     * @param integer $offset
+     * @see http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
+     * @param int $offset
      */
     public function offsetUnset($offset)
     {

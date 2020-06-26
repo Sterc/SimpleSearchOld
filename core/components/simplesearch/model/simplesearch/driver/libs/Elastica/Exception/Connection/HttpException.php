@@ -7,27 +7,25 @@ use Elastica\Request;
 use Elastica\Response;
 
 /**
- * Connection exception
+ * Connection exception.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
  */
 class HttpException extends ConnectionException
 {
     /**
-     * Error code / message
+     * Error code / message.
      *
-     * @var string Error code / message
+     * @var int Error code / message
      */
     protected $_error = 0;
 
     /**
-     * Construct Exception
+     * Construct Exception.
      *
-     * @param string            $error    Error
-     * @param \Elastica\Request  $request
-     * @param \Elastica\Response $response
+     * @param int      $error
+     * @param Request  $request
+     * @param Response $response
      */
     public function __construct($error, Request $request = null, Response $response = null)
     {
@@ -39,49 +37,40 @@ class HttpException extends ConnectionException
 
     /**
      * Returns the error message corresponding to the error code
-     * cUrl error code reference can be found here {@link http://curl.haxx.se/libcurl/c/libcurl-errors.html}
+     * cUrl error code reference can be found here {@link http://curl.haxx.se/libcurl/c/libcurl-errors.html}.
      *
-     * @param  string $error Error code
+     * @param int $error Error code
+     *
      * @return string Error message
      */
-    public function getErrorMessage($error)
+    public function getErrorMessage(int $error): string
     {
         switch ($error) {
             case CURLE_UNSUPPORTED_PROTOCOL:
-                $error = "Unsupported protocol";
-                break;
+                return 'Unsupported protocol';
             case CURLE_FAILED_INIT:
-                $error = "Internal cUrl error?";
-                break;
+                return 'Internal cUrl error?';
             case CURLE_URL_MALFORMAT:
-                $error = "Malformed URL";
-                break;
+                return 'Malformed URL';
             case CURLE_COULDNT_RESOLVE_PROXY:
-                $error = "Couldn't resolve proxy";
-                break;
+                return "Couldn't resolve proxy";
             case CURLE_COULDNT_RESOLVE_HOST:
-                $error = "Couldn't resolve host";
-                break;
+                return "Couldn't resolve host";
             case CURLE_COULDNT_CONNECT:
-                $error = "Couldn't connect to host, ElasticSearch down?";
-                break;
-            case 28:
-                $error = "Operation timed out";
-                break;
-            default:
-                $error = "Unknown error:" . $error;
-                break;
+                return "Couldn't connect to host, Elasticsearch down?";
+            case CURLE_OPERATION_TIMEOUTED:
+                return 'Operation timed out';
         }
 
-        return $error;
+        return 'Unknown error:'.$error;
     }
 
     /**
-     * Return Error code / message
+     * Return Error code / message.
      *
-     * @return string Error code / message
+     * @return int Error code / message
      */
-    public function getError()
+    public function getError(): int
     {
         return $this->_error;
     }

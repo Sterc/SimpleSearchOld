@@ -3,12 +3,12 @@
 namespace Elastica;
 
 use Elastica\Exception\InvalidException;
+use Elastica\ResultSet\BuilderInterface;
+use Elastica\ResultSet\DefaultBuilder;
 
 /**
- * Elastica search object
+ * Elastica search object.
  *
- * @category Xodoa
- * @package  Elastica
  * @author   Nicolas Ruflin <spam@ruflin.com>
  */
 class Search
@@ -25,31 +25,38 @@ class Search
     const OPTION_SIZE = 'size';
     const OPTION_SCROLL = 'scroll';
     const OPTION_SCROLL_ID = 'scroll_id';
+    const OPTION_QUERY_CACHE = 'query_cache';
+    const OPTION_TERMINATE_AFTER = 'terminate_after';
+    const OPTION_SHARD_REQUEST_CACHE = 'request_cache';
+    const OPTION_FILTER_PATH = 'filter_path';
+    const OPTION_TYPED_KEYS = 'typed_keys';
 
     /*
      * Search types
      */
-    const OPTION_SEARCH_TYPE_COUNT = 'count';
-    const OPTION_SEARCH_TYPE_SCAN = 'scan';
     const OPTION_SEARCH_TYPE_DFS_QUERY_THEN_FETCH = 'dfs_query_then_fetch';
-    const OPTION_SEARCH_TYPE_DFS_QUERY_AND_FETCH = 'dfs_query_and_fetch';
     const OPTION_SEARCH_TYPE_QUERY_THEN_FETCH = 'query_then_fetch';
-    const OPTION_SEARCH_TYPE_QUERY_AND_FETCH = 'query_and_fetch';
     const OPTION_SEARCH_TYPE_SUGGEST = 'suggest';
+    const OPTION_SEARCH_IGNORE_UNAVAILABLE = 'ignore_unavailable';
 
     /**
-     * Array of indices
+     * @var BuilderInterface
+     */
+    private $_builder;
+
+    /**
+     * Array of indices.
      *
      * @var array
      */
-    protected $_indices = array();
+    protected $_indices = [];
 
     /**
-     * Array of types
+     * Array of types.
      *
      * @var array
      */
-    protected $_types = array();
+    protected $_types = [];
 
     /**
      * @var \Elastica\Query
@@ -59,31 +66,35 @@ class Search
     /**
      * @var array
      */
-    protected $_options = array();
+    protected $_options = [];
 
     /**
-     * Client object
+     * Client object.
      *
      * @var \Elastica\Client
      */
     protected $_client;
 
     /**
-     * Constructs search object
+     * Constructs search object.
      *
-     * @param \Elastica\Client $client Client object
+     * @param \Elastica\Client $client  Client object
+     * @param BuilderInterface $builder
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, BuilderInterface $builder = null)
     {
+        $this->_builder = $builder ?: new DefaultBuilder();
         $this->_client = $client;
     }
 
     /**
-     * Adds a index to the list
+     * Adds a index to the list.
      *
-     * @param  \Elastica\Index|string               $index Index object or string
+     * @param \Elastica\Index|string $index Index object or string
+     *
      * @throws \Elastica\Exception\InvalidException
-     * @return \Elastica\Search                     Current object
+     *
+     * @return $this
      */
     public function addIndex($index)
     {
@@ -91,22 +102,23 @@ class Search
             $index = $index->getName();
         }
 
-        if (!is_string($index)) {
+        if (!\is_scalar($index)) {
             throw new InvalidException('Invalid param type');
         }
 
-        $this->_indices[] = $index;
+        $this->_indices[] = (string) $index;
 
         return $this;
     }
 
     /**
-     * Add array of indices at once
+     * Add array of indices at once.
      *
-     * @param  array           $indices
-     * @return \Elastica\Search
+     * @param array $indices
+     *
+     * @return $this
      */
-    public function addIndices(array $indices = array())
+    public function addIndices(array $indices = [])
     {
         foreach ($indices as $index) {
             $this->addIndex($index);
@@ -116,11 +128,13 @@ class Search
     }
 
     /**
-     * Adds a type to the current search
+     * Adds a type to the current search.
      *
-     * @param  \Elastica\Type|string                $type Type name or object
-     * @return \Elastica\Search                     Search object
+     * @param \Elastica\Type|string $type Type name or object
+     *
      * @throws \Elastica\Exception\InvalidException
+     *
+     * @return $this
      */
     public function addType($type)
     {
@@ -128,7 +142,7 @@ class Search
             $type = $type->getName();
         }
 
-        if (!is_string($type)) {
+        if (!\is_string($type)) {
             throw new InvalidException('Invalid type type');
         }
 
@@ -138,12 +152,13 @@ class Search
     }
 
     /**
-     * Add array of types
+     * Add array of types.
      *
-     * @param  array           $types
-     * @return \Elastica\Search
+     * @param array $types
+     *
+     * @return $this
      */
-    public function addTypes(array $types = array())
+    public function addTypes(array $types = [])
     {
         foreach ($types as $type) {
             $this->addType($type);
@@ -153,8 +168,9 @@ class Search
     }
 
     /**
-     * @param  string|array|\Elastica\Query|Elastica\Suggest\Term|\Elastica\Query\AbstractQuery|\Elastica\Filter\AbstractFilter $query|
-     * @return \Elastica\Search
+     * @param string|array|\Elastica\Query|\Elastica\Suggest|\Elastica\Query\AbstractQuery $query
+     *
+     * @return $this
      */
     public function setQuery($query)
     {
@@ -164,9 +180,10 @@ class Search
     }
 
     /**
-     * @param  string          $key
-     * @param  mixed           $value
-     * @return \Elastica\Search
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
      */
     public function setOption($key, $value)
     {
@@ -178,8 +195,9 @@ class Search
     }
 
     /**
-     * @param  array           $options
-     * @return \Elastica\Search
+     * @param array $options
+     *
+     * @return $this
      */
     public function setOptions(array $options)
     {
@@ -193,27 +211,24 @@ class Search
     }
 
     /**
-     * @return \Elastica\Search
+     * @return $this
      */
     public function clearOptions()
     {
-        $this->_options = array();
+        $this->_options = [];
 
         return $this;
     }
 
     /**
-     * @param  string          $key
-     * @param  mixed           $value
-     * @return \Elastica\Search
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
      */
     public function addOption($key, $value)
     {
         $this->_validateOption($key);
-
-        if (!isset($this->_options[$key])) {
-            $this->_options[$key] = array();
-        }
 
         $this->_options[$key][] = $value;
 
@@ -221,7 +236,8 @@ class Search
     }
 
     /**
-     * @param  string $key
+     * @param string $key
+     *
      * @return bool
      */
     public function hasOption($key)
@@ -230,14 +246,16 @@ class Search
     }
 
     /**
-     * @param  string                              $key
-     * @return mixed
+     * @param string $key
+     *
      * @throws \Elastica\Exception\InvalidException
+     *
+     * @return mixed
      */
     public function getOption($key)
     {
         if (!$this->hasOption($key)) {
-            throw new InvalidException('Option ' . $key . ' does not exist');
+            throw new InvalidException('Option '.$key.' does not exist');
         }
 
         return $this->_options[$key];
@@ -252,9 +270,11 @@ class Search
     }
 
     /**
-     * @param  string                              $key
-     * @return bool
+     * @param string $key
+     *
      * @throws \Elastica\Exception\InvalidException
+     *
+     * @return bool
      */
     protected function _validateOption($key)
     {
@@ -269,14 +289,20 @@ class Search
             case self::OPTION_SCROLL:
             case self::OPTION_SCROLL_ID:
             case self::OPTION_SEARCH_TYPE_SUGGEST:
+            case self::OPTION_SEARCH_IGNORE_UNAVAILABLE:
+            case self::OPTION_QUERY_CACHE:
+            case self::OPTION_TERMINATE_AFTER:
+            case self::OPTION_SHARD_REQUEST_CACHE:
+            case self::OPTION_FILTER_PATH:
+            case self::OPTION_TYPED_KEYS:
                 return true;
         }
 
-        throw new InvalidException('Invalid option ' . $key);
+        throw new InvalidException('Invalid option '.$key);
     }
 
     /**
-     * Return client object
+     * Return client object.
      *
      * @return \Elastica\Client Client object
      */
@@ -286,7 +312,7 @@ class Search
     }
 
     /**
-     * Return array of indices
+     * Return array of indices.
      *
      * @return array List of index names
      */
@@ -300,11 +326,12 @@ class Search
      */
     public function hasIndices()
     {
-        return count($this->_indices) > 0;
+        return \count($this->_indices) > 0;
     }
 
     /**
      * @param Index|string $index
+     *
      * @return bool
      */
     public function hasIndex($index)
@@ -313,11 +340,11 @@ class Search
             $index = $index->getName();
         }
 
-        return in_array($index, $this->_indices);
+        return \in_array($index, $this->_indices);
     }
 
     /**
-     * Return array of types
+     * Return array of types.
      *
      * @return array List of types
      */
@@ -331,11 +358,12 @@ class Search
      */
     public function hasTypes()
     {
-        return count($this->_types) > 0;
+        return \count($this->_types) > 0;
     }
 
     /**
      * @param \Elastica\Type|string $type
+     *
      * @return bool
      */
     public function hasType($type)
@@ -344,7 +372,7 @@ class Search
             $type = $type->getName();
         }
 
-        return in_array($type, $this->_types);
+        return \in_array($type, $this->_types);
     }
 
     /**
@@ -360,10 +388,11 @@ class Search
     }
 
     /**
-     * Creates new search object
+     * Creates new search object.
      *
-     * @param  \Elastica\SearchableInterface               $searchObject
-     * @return \Elastica\Search
+     * @param \Elastica\SearchableInterface $searchObject
+     *
+     * @return Search
      */
     public static function create(SearchableInterface $searchObject)
     {
@@ -371,16 +400,16 @@ class Search
     }
 
     /**
-     * Combines indices and types to the search request path
+     * Combines indices and types to the search request path.
      *
      * @return string Search path
      */
     public function getPath()
     {
-    	if (isset($this->_options[self::OPTION_SCROLL_ID])) {
-    	    return '_search/scroll';
-    	}
-    	
+        if (isset($this->_options[self::OPTION_SCROLL_ID])) {
+            return '_search/scroll';
+        }
+
         $indices = $this->getIndices();
 
         $path = '';
@@ -391,27 +420,25 @@ class Search
                 $path .= '_all';
             }
         } else {
-            $path .= implode(',', $indices);
+            $path .= \implode(',', $indices);
         }
 
         if (!empty($types)) {
-            $path .= '/' . implode(',', $types);
-        }
-
-        if(isset($this->_options[self::OPTION_SEARCH_TYPE_SUGGEST])) {
-            return '/_suggest';
+            $path .= '/'.\implode(',', $types);
         }
 
         // Add full path based on indices and types -> could be all
-        return $path . '/_search';
+        return $path.'/_search';
     }
 
     /**
-     * Search in the set indices, types
+     * Search in the set indices, types.
      *
-     * @param  mixed                               $query
-     * @param  int|array                           $options OPTIONAL Limit or associative array of options (option=>value)
+     * @param mixed     $query
+     * @param int|array $options OPTIONAL Limit or associative array of options (option=>value)
+     *
      * @throws \Elastica\Exception\InvalidException
+     *
      * @return \Elastica\ResultSet
      */
     public function search($query = '', $options = null)
@@ -423,44 +450,55 @@ class Search
 
         $params = $this->getOptions();
 
+        // Send scroll_id via raw HTTP body to handle cases of very large (> 4kb) ids.
+        if ('_search/scroll' == $path) {
+            $data = [self::OPTION_SCROLL_ID => $params[self::OPTION_SCROLL_ID]];
+            unset($params[self::OPTION_SCROLL_ID]);
+        } else {
+            $data = $query->toArray();
+        }
+
         $response = $this->getClient()->request(
             $path,
             Request::GET,
-            $query->toArray(),
+            $data,
             $params
         );
 
-        return new ResultSet($response, $query);
+        return $this->_builder->buildResultSet($response, $query);
     }
 
     /**
-     *
      * @param mixed $query
-	 * @param $fullResult (default = false) By default only the total hit count is returned. If set to true, the full ResultSet including facets is returned.
+     * @param $fullResult (default = false) By default only the total hit count is returned. If set to true, the full ResultSet including aggregations is returned
+     *
      * @return int|ResultSet
      */
     public function count($query = '', $fullResult = false)
     {
         $this->setOptionsAndQuery(null, $query);
 
-        $query = $this->getQuery();
+        // Clone the object as we do not want to modify the original query.
+        $query = clone $this->getQuery();
+        $query->setSize(0);
         $path = $this->getPath();
 
         $response = $this->getClient()->request(
             $path,
             Request::GET,
             $query->toArray(),
-            array(self::OPTION_SEARCH_TYPE => self::OPTION_SEARCH_TYPE_COUNT)
+            [self::OPTION_SEARCH_TYPE => self::OPTION_SEARCH_TYPE_QUERY_THEN_FETCH]
         );
-        $resultSet = new ResultSet($response, $query);
-		
-        return $fullResult?$resultSet:$resultSet->getTotalHits();
+        $resultSet = $this->_builder->buildResultSet($response, $query);
+
+        return $fullResult ? $resultSet : $resultSet->getTotalHits();
     }
 
     /**
-     * @param  array|int                   $options
-     * @param  string|array|\Elastica\Query $query
-     * @return \Elastica\Search
+     * @param array|int                    $options
+     * @param string|array|\Elastica\Query $query
+     *
+     * @return $this
      */
     public function setOptionsAndQuery($options = null, $query = '')
     {
@@ -468,14 +506,14 @@ class Search
             $this->setQuery($query);
         }
 
-        if (is_int($options)) {
+        if (\is_int($options)) {
             $this->getQuery()->setSize($options);
-        } elseif (is_array($options)) {
+        } elseif (\is_array($options)) {
             if (isset($options['limit'])) {
                 $this->getQuery()->setSize($options['limit']);
                 unset($options['limit']);
             }
-              if (isset($options['explain'])) {
+            if (isset($options['explain'])) {
                 $this->getQuery()->setExplain($options['explain']);
                 unset($options['explain']);
             }
@@ -486,13 +524,34 @@ class Search
     }
 
     /**
-     * @param  \Elastica\Suggest\Term   $term
-     * @return \Elastica\Search
+     * @param Suggest $suggest
+     *
+     * @return $this
      */
-    public function addSuggest($suggest)
+    public function setSuggest(Suggest $suggest)
     {
-        $this->setOptionsAndQuery(array(self::OPTION_SEARCH_TYPE_SUGGEST => 'suggest'), $suggest);
-    
-        return $this;
+        return $this->setOptionsAndQuery([self::OPTION_SEARCH_TYPE_SUGGEST => 'suggest'], $suggest);
+    }
+
+    /**
+     * Returns the Scroll Iterator.
+     *
+     * @see Elastica\Scroll
+     *
+     * @param string $expiryTime
+     *
+     * @return Scroll
+     */
+    public function scroll($expiryTime = '1m')
+    {
+        return new Scroll($this, $expiryTime);
+    }
+
+    /**
+     * @return BuilderInterface
+     */
+    public function getResultSetBuilder()
+    {
+        return $this->_builder;
     }
 }

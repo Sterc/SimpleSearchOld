@@ -455,6 +455,7 @@
       "area": "ElasticSearch"
     }, {
       "key": "elastic.search_fields",
+      "value": "pagetitle^20,introtext^10,alias^5,content^1",
       "area": "ElasticSearch"
     }, {
       "key": "solr.hostname",

@@ -3,45 +3,59 @@
 namespace Elastica\Query;
 
 /**
- * Nested query
+ * Nested query.
  *
- * @category Xodoa
- * @package Elastica
  * @author Nicolas Ruflin <spam@ruflin.com>
- * @link http://www.elasticsearch.org/guide/reference/query-dsl/nested-query.html
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-nested-query.html
  */
 class Nested extends AbstractQuery
 {
     /**
-     * Adds field to mlt query
+     * Adds field to mlt query.
      *
-     * @param  string                     $path Nested object path
-     * @return \Elastica\Query\Nested
+     * @param string $path Nested object path
+     *
+     * @return $this
      */
-    public function setPath($path)
+    public function setPath(string $path): self
     {
         return $this->setParam('path', $path);
     }
 
     /**
-     * Sets nested query
+     * Sets nested query.
      *
-     * @param  \Elastica\Query\AbstractQuery $query
-     * @return \Elastica\Query\Nested
+     * @param AbstractQuery $query
+     *
+     * @return $this
      */
-    public function setQuery(AbstractQuery $query)
+    public function setQuery(AbstractQuery $query): self
     {
-        return $this->setParam('query', $query->toArray());
+        return $this->setParam('query', $query);
     }
 
     /**
-     * Set score method
+     * Set score method.
      *
-     * @param  string                     $scoreMode Options: avg, total, max and none.
-     * @return \Elastica\Query\Nested
+     * @param string $scoreMode options: avg, total, max and none
+     *
+     * @return $this
      */
-    public function setScoreMode($scoreMode)
+    public function setScoreMode(string $scoreMode = 'avg'): self
     {
         return $this->setParam('score_mode', $scoreMode);
+    }
+
+    /**
+     * Set inner hits.
+     *
+     * @param InnerHits $innerHits
+     *
+     * @return $this
+     */
+    public function setInnerHits(InnerHits $innerHits): self
+    {
+        return $this->setParam('inner_hits', $innerHits);
     }
 }

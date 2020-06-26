@@ -22,7 +22,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
 
     /**
      * Initialize the ElasticSearch client, and setup settings for the client.
-     * 
+     *
      * @return void
      */
     public function initialize()
@@ -55,43 +55,37 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
     protected function defaultSetup()
     {
         return [
-            'number_of_shards'   => 5,
+            'number_of_shards' => 5,
             'number_of_replicas' => 1,
-            'analysis' => [
-                'analyzer' => [
-                    'default_index' => [
-                        'type'      => 'custom',
-                        'tokenizer' => 'whitespace',
-                        'filter'    => [
-                            'asciifolding',
-                            'standard',
-                            'lowercase',
-                            'haystack_edgengram'
-                        ]
-                    ],
-                    'default_search' => [
-                        'type'      => 'custom',
-                        'tokenizer' => 'whitespace',
-                        'filter'    => [
-                            'asciifolding',
-                            'standard',
-                            'lowercase'
-                        ]
-                    ]
-                ],
-                'filter' => [
-                    'haystack_ngram' => [
-                        'type'     => 'nGram',
-                        'min_gram' => 2,
-                        'max_gram' => 30,
-                    ],
-                    'haystack_edgengram' => [
-                        'type'     => 'edgeNGram',
-                        'min_gram' => 2,
-                        'max_gram' => 30,
-                    ]
-                ]
-            ]
+            'analysis' => array(
+                'analyzer' => array(
+                    'index' => array(
+                        "type" => "custom",
+                        "tokenizer" => "whitespace",
+                        "filter" => array(
+                            "asciifolding",
+                            "lowercase",
+                            "haystack_edgengram"
+                        )
+                    ),
+                    'default_search' => array(
+                        "type" => "custom",
+                        "tokenizer" => "whitespace",
+                        "filter" => array(
+                            "asciifolding",
+                            "lowercase"
+                        )
+                    )
+                ),
+                "filter" => array(
+                    "haystack_ngram" => array(
+                        "type" => "nGram"
+                    ),
+                    "haystack_edgengram" => array(
+                        "type" => "edgeNGram"
+                    )
+                )
+            )
         ];
     }
 
@@ -132,8 +126,8 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         $query->setFields($fields);
         $query->setQuery($string);
 
-        $customFilterScore = new \Elastica\Query\CustomFiltersScore();
-        $customFilterScore->setQuery($query);
+        $functionScore = new \Elastica\Query\FunctionScore();
+        $functionScore->setQuery($query);
 
         $searchBoosts = $this->modx->getOption('simplesearch.elastic.search_boost', null, '');
         $searchBoosts = explode('|', $searchBoosts);
@@ -169,23 +163,23 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             $boosts[] = $arr;
         }
 
-        if (empty($boosts)) {
-            $customFilterScore->addFilter(new \Elastica\Filter\Term(['type' => 'document']), 1);
-        } else {
+
+        if (!empty($boosts)) {
+            $weightQuery = new \Elastica\Query\AbstractQuery;
             foreach ($boosts as $boost) {
-                $customFilterScore->addFilter(new \Elastica\Filter\Term([$boost['field'] => $boost['value']]), $boost['boost']);
+                $functionScore->addWeightFunction($boost['boost'], $weightQuery->addParam($arr['field'], $arr['value']));
             }
         }
 
         /** @var \Elastica\Query $elasticaQuery */
         $elasticaQuery = new \Elastica\Query();
-        $elasticaQuery->setQuery($customFilterScore);
+        $elasticaQuery->setQuery($functionScore);
 
         /* Set limit. */
         $perPage = $this->modx->getOption('perPage', $scriptProperties, 10);
         if (!empty($perPage)) {
             $offset      = $this->modx->getOption('start', $scriptProperties, 0);
-            $offsetIndex = $this->modx->getOption('offsetIndex', $scriptProperties, 'sisea_offset');
+            $offsetIndex = $this->modx->getOption('offsetIndex', $scriptProperties, 'simplesearch_offset');
 
             if (isset($_REQUEST[$offsetIndex])) {
                 $offset = (int)$_REQUEST[$offsetIndex];
@@ -195,12 +189,12 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             $elasticaQuery->setSize($perPage);
         }
 
-        $elasticaFilterAnd = new \Elastica\Filter\BoolAnd();
+        $elasticaFilterAnd = new \Elastica\Query\BoolQuery();
 
         /* Handle hidemenu option. */
         $hideMenu = (int) $this->modx->getOption('hideMenu', $scriptProperties, 2);
         if ($hideMenu !== 2) {
-            $elasticaFilterHideMenu  = new \Elastica\Filter\Term();
+            $elasticaFilterHideMenu  = new \Elastica\Query\Term();
             $elasticaFilterHideMenu->setTerm('hidemenu', ($hideMenu ? 1 : 0));
             $elasticaFilterAnd->addFilter($elasticaFilterHideMenu);
         }
@@ -210,7 +204,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         $contexts = !empty($contexts) ? $contexts : $this->modx->context->get('key');
         $contexts = explode(',', $contexts);
 
-        $elasticaFilterContext  = new \Elastica\Filter\Terms();
+        $elasticaFilterContext  = new \Elastica\Query\Terms();
         $elasticaFilterContext->setTerms('context_key', $contexts);
         $elasticaFilterAnd->addFilter($elasticaFilterContext);
 
@@ -221,7 +215,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             $depth  = $this->modx->getOption('depth', $this->config, 10);
             $ids    = $this->processIds($ids, $idType, $depth);
 
-            $elasticaFilterId  = new \Elastica\Filter\Term();
+            $elasticaFilterId  = new \Elastica\Query\Term();
             $elasticaFilterId->setTerm('id', $ids);
             $elasticaFilterAnd->addFilter($elasticaFilterId);
         }
@@ -231,7 +225,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         if (!empty($exclude)) {
             $exclude                 = $this->cleanIds($exclude);
             $exclude                 = explode(',', $exclude);
-            $elasticaFilterExcludeId = new \Elastica\Filter\Term();
+            $elasticaFilterExcludeId = new \Elastica\Query\Term();
 
             $elasticaFilterExcludeId->setTerm('id', $exclude);
 
@@ -240,19 +234,19 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         }
 
         /* Basic always-on conditions. */
-        $elasticaFilterPublished = new \Elastica\Filter\Term();
+        $elasticaFilterPublished = new \Elastica\Query\Term();
         $elasticaFilterPublished->setTerm('published', 1);
         $elasticaFilterAnd->addFilter($elasticaFilterPublished);
 
-        $elasticaFilterSearchable = new \Elastica\Filter\Term();
+        $elasticaFilterSearchable = new \Elastica\Query\Term();
         $elasticaFilterSearchable->setTerm('searchable', 1);
         $elasticaFilterAnd->addFilter($elasticaFilterSearchable);
 
-        $elasticaFilterDeleted = new \Elastica\Filter\Term();
+        $elasticaFilterDeleted = new \Elastica\Query\Term();
         $elasticaFilterDeleted->setTerm('deleted', 0);
         $elasticaFilterAnd->addFilter($elasticaFilterDeleted);
 
-        $elasticaQuery->setFilter($elasticaFilterAnd);
+        $elasticaQuery->setPostFilter($elasticaFilterAnd);
 
         /* Sorting. */
         if (!empty($scriptProperties['sortBy'])) {
@@ -283,7 +277,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             'query_time' => 0,
             'results'    => [],
         ];
-        $elasticaResultSet = $this->index->search($elasticaQuery);
+        $elasticaResultSet = $this->index->search($query);
 
         $elasticaResults = $elasticaResultSet->getResults();
         $totalResults    = $elasticaResultSet->getTotalHits();
@@ -375,7 +369,7 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         try {
             $type->deleteById($id);
         } catch (Exception $e) {}
-        
+
         $type->getIndex()->refresh();
     }
 }
