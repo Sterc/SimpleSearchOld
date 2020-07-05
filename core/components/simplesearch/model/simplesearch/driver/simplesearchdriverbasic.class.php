@@ -44,6 +44,8 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
         $docFields     = explode(',', $this->modx->getOption('docFields', $scriptProperties, 'pagetitle,longtitle,alias,description,introtext,content'));
         $includeTVs    = $this->modx->getOption('includeTVs', $scriptProperties, false);
         $includeTVList = $this->modx->getOption('includeTVList', $scriptProperties, '');
+        $includedTVIds = array();
+
 
         $c = $this->modx->newQuery('modResource');
         if ($includeTVs) {
@@ -51,10 +53,16 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
             if (!empty($includeTVList)) {
                 $includeTVList = explode(',', $includeTVList);
                 $includeTVList = array_map('trim', $includeTVList);
-                $c->leftJoin('modTemplateVar', 'TemplateVar', array('TemplateVarResources.tmplvarid = TemplateVar.id'));
-                $c->where(array(
-                    'TemplateVar.name:IN' => $includeTVList
-                ));
+                $tv = $this->modx->newQuery('modTemplateVar', [
+                    'name:IN' => $includeTVList
+                ]);
+                $tv->select('id');
+                $tv->prepare();
+                $result = $this->modx->query($tv->toSQL());
+                $tvIds = $result->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($tvIds as $row) {
+                    $includedTVIds[] = $row['id'];
+                }
             }
         }
 
@@ -109,6 +117,9 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
 
                     if ($includeTVs) {
                         $whereArray[] = array('TemplateVarResources.value:LIKE', $term, xPDOQuery::SQL_OR, $whereGroup);
+                        if (!empty($includeTVList)) {
+                            $whereArray[] = array('TemplateVarResources.tmplvarid:IN', $includedTVIds, xPDOQuery::SQL_AND, $whereGroup);
+                        }
                     }
 
                     if (is_array($customPackages) && !empty($customPackages)) {
@@ -131,8 +142,12 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                 foreach ($docFields as $field) {
                     $whereArray[] = array($field.':LIKE', $term,xPDOQuery::SQL_OR, $whereGroup);
                 }
-
-                $whereArray[] = array('TemplateVarResources.value:LIKE', $term, xPDOQuery::SQL_OR, $whereGroup);
+                if ($includeTVs) {
+                    $whereArray[] = array('TemplateVarResources.value:LIKE', $term, xPDOQuery::SQL_OR, $whereGroup);
+                    if (!empty($includeTVList)) {
+                        $whereArray[] = array('TemplateVarResources.tmplvarid:IN', $includedTVIds, xPDOQuery::SQL_AND, $whereGroup);
+                    }
+                }
                 if (is_array($customPackages) && !empty($customPackages)) {
                     foreach ($customPackages as $package) {
                         $fields = explode(',', $package[1]);

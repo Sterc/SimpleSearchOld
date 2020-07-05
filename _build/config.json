@@ -3,7 +3,7 @@
   "lowCaseName": "simplesearch",
   "description": "A simple search solution for MODX Revolution. Loosely based on AjaxSearch for Evolution (minus the ajax). Only searches Resources; does not search dynamic content.",
   "author": "Sterc",
-  "version": "2.1.0-pl",
+  "version": "2.1.2-pl",
   "package":{
     "elements": {
       "chunks": [{

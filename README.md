@@ -11,6 +11,7 @@ Upgrading to 2.0.0 from 1.* is highly recommended, but it does introduce some ri
 
 Important changes from 1.* to 2.0.0:
 - The namespace has been changed from `sisea` to `simplesearch`. If you're using custom System Settings, then please migrate them.
+- The placeholder prefix has also been changed from `sisea` to `simplesearch`.
 - The ElasticSearch and SOLR drivers have been removed, because they were in need of improvements. Future drivers should be seperate addons. Feel free to ask us for help here.
 
 ## Autosuggest
@@ -35,3 +36,8 @@ $('.simplesearch-search-form input[type="text"]').on('keyup', function () {
 
 ## Bugs and feature requests
 We value your feedback, feature requests and bug reports. Please issue them on [Github](https://github.com/Sterc/SimpleSearch/issues/new).
+
+# Free Extra
+This is a free extra and the code is publicly available for you to change. The extra is being actively maintained and you're free to put in pull requests which match our roadmap. Please create an issue if the pull request differs from the roadmap so we can make sure we're on the same page.
+
+Need help? [Approach our support desk for paid premium support.](mailto:service@sterc.com)

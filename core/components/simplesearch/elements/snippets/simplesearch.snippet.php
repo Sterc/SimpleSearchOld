@@ -7,10 +7,10 @@
  * @package simplesearch
  */
 require_once $modx->getOption(
-        'simplesearch.core_path',
-        null,
-        $modx->getOption('core_path') . 'components/simplesearch/'
-    ) . 'model/simplesearch/simplesearch.class.php';
+    'simplesearch.core_path',
+    null,
+    $modx->getOption('core_path') . 'components/simplesearch/'
+) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
 
 /* Find search index and toplaceholder setting */
@@ -54,12 +54,13 @@ $tvPrefix          = $modx->getOption('tvPrefix', $scriptProperties, '');
 $offsetIndex       = $modx->getOption('offsetIndex', $scriptProperties, 'simplesearch_offset');
 $idx               = isset($_REQUEST[$offsetIndex]) ? (int) $_REQUEST[$offsetIndex] + 1 : 1;
 $postHooks         = $modx->getOption('postHooks', $scriptProperties, '');
-$activeFacet       = $modx->getOption('facet',$_REQUEST,$modx->getOption('activeFacet', $scriptProperties, 'default'));
+$activeFacet       = $modx->getOption('facet', $_REQUEST, $modx->getOption('activeFacet', $scriptProperties, 'default'));
 $activeFacet       = $modx->sanitizeString($activeFacet);
 $facetLimit        = $modx->getOption('facetLimit', $scriptProperties, 5);
 $outputSeparator   = $modx->getOption('outputSeparator', $scriptProperties, "\n");
 $addSearchToLink   = (int) $modx->getOption('addSearchToLink', $scriptProperties, 0);
 $searchInLinkName  = $modx->getOption('searchInLinkName', $scriptProperties, 'search');
+$noResults = true;
 
 /* Get results */
 $response     = $search->getSearchResults($searchString, $scriptProperties);
@@ -87,7 +88,7 @@ if (!empty($response['results'])) {
                 $text = $modx->runSnippet($extractSource, $resourceArray);
             }
 
-            $extract = $search->createExtract($text,$extractLength,$extract,$extractEllipsis);
+            $extract = $search->createExtract($text, $extractLength, $extract,$extractEllipsis);
 
             /* Cleanup extract */
             $extract = strip_tags(preg_replace("#\<!--(.*?)--\>#si", '', $extract));
@@ -131,7 +132,7 @@ if (!empty($postHooks)) {
             foreach ($facetResults['results'] as $r) {
                 $r['idx']                           = $idx;
                 $fTpl                               = !empty($scriptProperties['tpl' . $facetKey]) ? $scriptProperties['tpl' . $facetKey] : $tpl;
-                $resultsTpl[$facetKey]['results'][] = $search->getChunk($fTpl,$r);
+                $resultsTpl[$facetKey]['results'][] = $search->getChunk($fTpl, $r);
                 $idx++;
             }
         }
@@ -141,10 +142,14 @@ if (!empty($postHooks)) {
 /* Set faceted results to placeholders for easy result positioning. */
 $output = array();
 foreach ($resultsTpl as $facetKey => $facetResults) {
-    $resultSet                          = implode($outputSeparator,$facetResults['results']);
+    $resultSet                          = implode($outputSeparator, $facetResults['results']);
     $placeholders[$facetKey.'.results'] = $resultSet;
     $placeholders[$facetKey.'.total']   = !empty($facetResults['total']) ? $facetResults['total'] : 0;
     $placeholders[$facetKey.'.key']     = $facetKey;
+
+    if ($placeholders[$facetKey.'.total'] !== 0) {
+        $noResults = false;
+    }
 }
 
 $placeholders['results']   = $placeholders[$activeFacet . '.results']; /* Set active facet results. */
@@ -152,7 +157,7 @@ $placeholders['total']     = !empty($resultsTpl[$activeFacet]['total']) ? $resul
 $placeholders['page']      = isset($_REQUEST[$offsetIndex]) ? ceil((int) $_REQUEST[$offsetIndex] / $perPage) + 1 : 1;
 $placeholders['pageCount'] = !empty($resultsTpl[$activeFacet]['total']) ? ceil($resultsTpl[$activeFacet]['total'] / $perPage) : 1;
 
-if (!empty($response['results'])) {
+if (!empty($placeholders['results'])) {
     /* add results found message */
     $placeholders['resultInfo'] = $modx->lexicon('simplesearch.results_found', array(
         'count' => $placeholders['total'],
@@ -161,7 +166,7 @@ if (!empty($response['results'])) {
 
     /* If perPage set to >0, add paging */
     if ($perPage > 0) {
-        $placeholders['paging'] = $search->getPagination($searchString,$perPage,$pagingSeparator,$placeholders['total']);
+        $placeholders['paging'] = $search->getPagination($searchString, $perPage, $pagingSeparator, $placeholders['total']);
     }
 }
 
@@ -173,10 +178,8 @@ $modx->setPlaceholder($placeholderPrefix . 'query', $searchString);
 $modx->setPlaceholder($placeholderPrefix . 'count', $response['total']);
 $modx->setPlaceholders($placeholders, $placeholderPrefix);
 
-if (empty($response['results'])) {
-    $output = $search->getChunk($noResultsTpl, array(
-        'query' => $searchString,
-    ));
+if ($noResults) {
+    $output = $search->getChunk($noResultsTpl, $placeholders);
 } else {
     $output = $search->getChunk($containerTpl, $placeholders);
 }
