@@ -565,7 +565,7 @@ class SimpleSearch
      */
     public function indexAllResources($scriptProperties)
     {
-        $search = $this->loadDriver($scriptProperties);
+        $this->loadDriver($scriptProperties);
 
         $includeTVs = $this->modx->getOption('includeTVs', $scriptProperties, true);
         $processTVs = $this->modx->getOption('processTVs', $scriptProperties, true);
@@ -591,7 +591,7 @@ class SimpleSearch
                 }
             }
 
-            if ($search->driver->index($resourceArray, false)) {
+            if ($this->driver->index($resourceArray, false)) {
                 $this->modx->log(modX::LOG_LEVEL_INFO, '[SimpleSearch] Indexing Resource: ' . $resourceArray['pagetitle']);
                 $total++;
             }
