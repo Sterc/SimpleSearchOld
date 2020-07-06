@@ -55,34 +55,36 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
     protected function defaultSetup()
     {
         return [
-            'number_of_shards' => 5,
-            'number_of_replicas' => 1,
-            'analysis' => array(
-                'analyzer' => array(
-                    'index' => array(
-                        "type" => "custom",
-                        "tokenizer" => "whitespace",
-                        "filter" => array(
-                            "asciifolding",
-                            "lowercase",
-                            "haystack_edgengram"
+            'settings' => array(
+                'number_of_shards' => 5,
+                'number_of_replicas' => 1,
+                'analysis' => array(
+                    'analyzer' => array(
+                        'index' => array(
+                            "type" => "custom",
+                            "tokenizer" => "whitespace",
+                            "filter" => array(
+                                "asciifolding",
+                                "lowercase",
+                                "haystack_edgengram"
+                            )
+                        ),
+                        'default_search' => array(
+                            "type" => "custom",
+                            "tokenizer" => "whitespace",
+                            "filter" => array(
+                                "asciifolding",
+                                "lowercase"
+                            )
                         )
                     ),
-                    'default_search' => array(
-                        "type" => "custom",
-                        "tokenizer" => "whitespace",
-                        "filter" => array(
-                            "asciifolding",
-                            "lowercase"
+                    "filter" => array(
+                        "haystack_ngram" => array(
+                            "type" => "nGram"
+                        ),
+                        "haystack_edgengram" => array(
+                            "type" => "edgeNGram"
                         )
-                    )
-                ),
-                "filter" => array(
-                    "haystack_ngram" => array(
-                        "type" => "nGram"
-                    ),
-                    "haystack_edgengram" => array(
-                        "type" => "edgeNGram"
                     )
                 )
             )
@@ -108,9 +110,11 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
      * @param array $scriptProperties The scriptProperties array from the SimpleSearch snippet
      * @return array
      */
-    public function search($string, array $scriptProperties = [])
-    {
-        $fields = $this->modx->getOption('simplesearch.elastic.search_fields', null, 'pagetitle^20,introtext^10,alias^5,content^1');
+    public function search($string,array $scriptProperties = array()) {
+        ini_set('display_errors', 1);
+        ini_set('error_reporting', E_ALL);
+
+        $fields = $this->modx->getOption('sisea.elastic.search_fields', null, 'pagetitle^20,introtext^10,alias^5,content^1');
 
         $fields = explode(',', $fields);
         $fields = array_map('trim', $fields);
@@ -121,40 +125,38 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             return false;
         }
 
-        /** @var \Elastica\Query\MultiMatch $query */
-        $query = new \Elastica\Query\MultiMatch();
-        $query->setFields($fields);
-        $query->setQuery($string);
+        // $query = $this->getBoolRegexpQuery($string, $fields);
+        $query = $this->getMultiMatchQuery($string, $fields);
 
-        $functionScore = new \Elastica\Query\FunctionScore();
-        $functionScore->setQuery($query);
 
-        $searchBoosts = $this->modx->getOption('simplesearch.elastic.search_boost', null, '');
+        $customFilterScore = new \Elastica\Query\FunctionScore();
+        $customFilterScore->setQuery($query);
+
+
+        $searchBoosts = $this->modx->getOption('sisea.elastic.search_boost', null, '');
         $searchBoosts = explode('|', $searchBoosts);
         $searchBoosts = array_map('trim', $searchBoosts);
         $searchBoosts = array_keys(array_flip($searchBoosts));
         $searchBoosts = array_filter($searchBoosts);
 
-        $boosts = [];
+        $boosts = array();
+
+
         foreach ($searchBoosts as $boost) {
-            $arr = ['field' => '', 'value' => '', 'boost' => 1.0];
+            $arr = array('field' => '', 'value' => '', 'boost' => 1.0);
             $field = explode('=', $boost);
             $field = array_map('trim', $field);
             $field = array_keys(array_flip($field));
             $field = array_filter($field);
 
-            if (count($field) !== 2) {
-                continue;
-            }
+            if (count($field) != 2) continue;
 
             $value = explode('^', $field[1]);
             $value = array_map('trim', $value);
             $value = array_keys(array_flip($value));
             $value = array_filter($value);
 
-            if (count($value) !== 2) {
-                continue;
-            }
+            if (count($value) != 2) continue;
 
             $arr['field'] = $field[0];
             $arr['value'] = $value[0];
@@ -163,137 +165,134 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
             $boosts[] = $arr;
         }
 
-
-        if (!empty($boosts)) {
-            $weightQuery = new \Elastica\Query\AbstractQuery;
+        if (empty($boosts)) {
+             $customFilterScore->addWeightFunction(1, new \Elastica\Query\Term(array('type' => 'document')));
+        } else {
             foreach ($boosts as $boost) {
-                $functionScore->addWeightFunction($boost['boost'], $weightQuery->addParam($arr['field'], $arr['value']));
+                $customFilterScore->addWeightFunction($boost['boost'], new \Elastica\Filter\Query(array($boost['field'] => $boost['value'])));
             }
         }
+
 
         /** @var \Elastica\Query $elasticaQuery */
         $elasticaQuery = new \Elastica\Query();
-        $elasticaQuery->setQuery($functionScore);
+        $elasticaQuery->setQuery($customFilterScore);
 
-        /* Set limit. */
-        $perPage = $this->modx->getOption('perPage', $scriptProperties, 10);
-        if (!empty($perPage)) {
-            $offset      = $this->modx->getOption('start', $scriptProperties, 0);
-            $offsetIndex = $this->modx->getOption('offsetIndex', $scriptProperties, 'simplesearch_offset');
-
-            if (isset($_REQUEST[$offsetIndex])) {
-                $offset = (int)$_REQUEST[$offsetIndex];
-            }
-
+    	/* set limit */
+        $perPage = $this->modx->getOption('perPage',$scriptProperties,10);
+    	if (!empty($perPage)) {
+            $offset = $this->modx->getOption('start',$scriptProperties,0);
+            $offsetIndex = $this->modx->getOption('offsetIndex',$scriptProperties,'sisea_offset');
+            if (isset($_REQUEST[$offsetIndex])) $offset = (int)$_REQUEST[$offsetIndex];
             $elasticaQuery->setFrom($offset);
             $elasticaQuery->setSize($perPage);
-        }
+    	}
 
         $elasticaFilterAnd = new \Elastica\Query\BoolQuery();
 
-        /* Handle hidemenu option. */
-        $hideMenu = (int) $this->modx->getOption('hideMenu', $scriptProperties, 2);
-        if ($hideMenu !== 2) {
+        /* handle hidemenu option */
+        $hideMenu = $this->modx->getOption('hideMenu',$scriptProperties,2);
+        if ($hideMenu != 2) {
             $elasticaFilterHideMenu  = new \Elastica\Query\Term();
             $elasticaFilterHideMenu->setTerm('hidemenu', ($hideMenu ? 1 : 0));
-            $elasticaFilterAnd->addFilter($elasticaFilterHideMenu);
+            $elasticaFilterAnd->addMust($elasticaFilterHideMenu);
         }
 
-        /* Handle contexts. */
-        $contexts = $this->modx->getOption('contexts', $scriptProperties, '');
+        /* handle contexts */
+        $contexts = $this->modx->getOption('contexts',$scriptProperties,'');
         $contexts = !empty($contexts) ? $contexts : $this->modx->context->get('key');
-        $contexts = explode(',', $contexts);
-
+        $contexts = explode(',',$contexts);
         $elasticaFilterContext  = new \Elastica\Query\Terms();
         $elasticaFilterContext->setTerms('context_key', $contexts);
-        $elasticaFilterAnd->addFilter($elasticaFilterContext);
+        $elasticaFilterAnd->addMust($elasticaFilterContext);
 
-        /* Handle restrict search to these IDs. */
-        $ids = $this->modx->getOption('ids', $scriptProperties, '');
-        if (!empty($ids)) {
-            $idType = $this->modx->getOption('idType', $this->config, 'parents');
-            $depth  = $this->modx->getOption('depth', $this->config, 10);
-            $ids    = $this->processIds($ids, $idType, $depth);
+        /* handle restrict search to these IDs */
+        $ids = $this->modx->getOption('ids',$scriptProperties,'');
+    	  if (!empty($ids)) {
+            $idType = $this->modx->getOption('idType',$this->config,'parents');
+            $depth = $this->modx->getOption('depth',$this->config,10);
+            $ids = $this->processIds($ids,$idType,$depth);
 
-            $elasticaFilterId  = new \Elastica\Query\Term();
-            $elasticaFilterId->setTerm('id', $ids);
-            $elasticaFilterAnd->addFilter($elasticaFilterId);
+            $elasticaFilterId  = new \Elastica\Query\Terms();
+            $elasticaFilterId->setTerms('id', $ids);
+            $elasticaFilterAnd->addMust($elasticaFilterId);
         }
 
-        /* Handle exclude IDs from search */
-        $exclude = $this->modx->getOption('exclude', $scriptProperties, '');
+        /* handle exclude IDs from search */
+        $exclude = $this->modx->getOption('exclude',$scriptProperties,'');
         if (!empty($exclude)) {
-            $exclude                 = $this->cleanIds($exclude);
-            $exclude                 = explode(',', $exclude);
-            $elasticaFilterExcludeId = new \Elastica\Query\Term();
+            $idType = $this->modx->getOption('idType',$this->config,'parents');
+            $depth = $this->modx->getOption('depth',$this->config,10);
+            $exclude = $this->processIds($exclude,$idType,$depth);
 
-            $elasticaFilterExcludeId->setTerm('id', $exclude);
-
-            $elasticaFilterNotId = new \Elastica\Filter\BoolNot($elasticaFilterExcludeId);
-            $elasticaFilterAnd->addFilter($elasticaFilterNotId);
+            $elasticaFilterExcludeId  = new \Elastica\Query\Terms();
+            $elasticaFilterExcludeId->setTerms('id', $exclude);
+            $elasticaFilterAnd->addMustNot($elasticaFilterExcludeId);
         }
 
-        /* Basic always-on conditions. */
-        $elasticaFilterPublished = new \Elastica\Query\Term();
-        $elasticaFilterPublished->setTerm('published', 1);
-        $elasticaFilterAnd->addFilter($elasticaFilterPublished);
+        /* basic always-on conditions */
+        $elasticaFilterPublished  = new \Elastica\Query\Term();
+        $elasticaFilterPublished->setTerm('published', true);
+        $elasticaFilterAnd->addMust($elasticaFilterPublished);
 
-        $elasticaFilterSearchable = new \Elastica\Query\Term();
-        $elasticaFilterSearchable->setTerm('searchable', 1);
-        $elasticaFilterAnd->addFilter($elasticaFilterSearchable);
+        $elasticaFilterSearchable  = new \Elastica\Query\Term();
+        $elasticaFilterSearchable->setTerm('searchable', true);
+        $elasticaFilterAnd->addMust($elasticaFilterSearchable);
 
-        $elasticaFilterDeleted = new \Elastica\Query\Term();
-        $elasticaFilterDeleted->setTerm('deleted', 0);
-        $elasticaFilterAnd->addFilter($elasticaFilterDeleted);
+        $elasticaFilterDeleted  = new \Elastica\Query\Term();
+        $elasticaFilterDeleted->setTerm('deleted', false);
+        $elasticaFilterAnd->addMust($elasticaFilterDeleted);
 
         $elasticaQuery->setPostFilter($elasticaFilterAnd);
 
-        /* Sorting. */
+        /* sorting */
         if (!empty($scriptProperties['sortBy'])) {
-            $sortDir       = $this->modx->getOption('sortDir', $scriptProperties, 'desc');
-            $sortDirs      = explode(',', $sortDir);
-            $sortBys       = explode(',', $scriptProperties['sortBy']);
-            $dir           = 'desc';
-            $amountSortBys = count($sortBys);
-
-            $sortArray = [];
-            for ($i = 0; $i < $amountSortBys; $i++) {
+            $sortDir = $this->modx->getOption('sortDir',$scriptProperties,'desc');
+            $sortDirs = explode(',',$sortDir);
+            $sortBys = explode(',',$scriptProperties['sortBy']);
+            $dir = 'desc';
+            $sortArray = array();
+            for ($i=0;$i<count($sortBys);$i++) {
                 if (isset($sortDirs[$i])) {
-                    $dir = $sortDirs[$i];
+                    $dir= $sortDirs[$i];
                 }
+                $sortArray[] = array($sortBys[$i] => $dir);
 
-                $sortArray[] = [$sortBys[$i] => $dir];
             }
-
-            $elasticaQuery->setSort($sortArray);
+            //$elasticaQuery->setSort($sortArray);
+            $elasticaQuery->addSort(
+                ['publishedon' => 'desc']
+            );
         }
 
-        /* Prepare response array. */
-        $response = [
-            'total'      => 0,
-            'start'      => !empty($offset) ? $offset : 0,
-            'limit'      => $perPage,
-            'status'     => 0,
-            'query_time' => 0,
-            'results'    => [],
-        ];
-        $elasticaResultSet = $this->index->search($query);
 
-        $elasticaResults = $elasticaResultSet->getResults();
-        $totalResults    = $elasticaResultSet->getTotalHits();
+        /* prepare response array */
+        $response = array(
+            'total' => 0,
+            'start' => !empty($offset) ? $offset : 0,
+            'limit' => $perPage,
+            'status' => 0,
+            'query_time' => 0,
+            'results' => array(),
+        );
+
+        $elasticaResultSet = $this->index->search($elasticaQuery);
+
+        $elasticaResults  = $elasticaResultSet->getResults();
+        $totalResults         = $elasticaResultSet->getTotalHits();
 
         if ($totalResults > 0) {
-            $response['total']      = $totalResults;
+            $response['total'] = $totalResults;
             $response['query_time'] = $elasticaResultSet->getTotalTime();
-            $response['status']     = 1;
-            $response['results']    = [];
+            $response['status'] = 1;
+            $response['results'] = array();
             foreach ($elasticaResults as $doc) {
-                $document = $doc->getData();
+                $d = $doc->getData();
 
                 /** @var modResource $resource */
-                $resource = $this->modx->newObject($document['class_key']);
+                $resource = $this->modx->newObject($d['class_key']);
                 if ($resource->checkPolicy('list')) {
-                    $response['results'][] = $document;
+                    $response['results'][] = $d;
                 }
             }
         }
@@ -371,5 +370,24 @@ class SimpleSearchDriverElastic extends SimpleSearchDriver
         } catch (Exception $e) {}
 
         $type->getIndex()->refresh();
+    }
+
+    /**
+     * It's multi match query realisations
+     * @author Robert Kuznetsov <robertkuznetsou@gmail.com>
+     * @param $string
+     * @param $fields
+     * @return \Elastica\Query\MultiMatch $query
+     */
+    private function getMultiMatchQuery($string, $fields) {
+        /** @var \Elastica\Query\MultiMatch $query */
+        $query = new \Elastica\Query\MultiMatch();
+        $query->setFields($fields);
+
+        $query->setQuery($string);
+        $query->setType('phrase');
+        $query->setOperator('and');
+
+        return $query;
     }
 }
