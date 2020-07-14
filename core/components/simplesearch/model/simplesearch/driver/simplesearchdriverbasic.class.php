@@ -37,7 +37,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
         $exclude       = $this->modx->getOption('exclude', $scriptProperties, '');
         $useAllWords   = $this->modx->getOption('useAllWords', $scriptProperties, false);
         $searchStyle   = $this->modx->getOption('searchStyle', $scriptProperties, 'partial');
-        $hideMenu      = $this->modx->getOption('hideMenu', $scriptProperties, 2);
+        $hideMenu      = (int) $this->modx->getOption('hideMenu', $scriptProperties, 2);
         $maxWords      = $this->modx->getOption('maxWords', $scriptProperties, 7);
         $andTerms      = $this->modx->getOption('andTerms', $scriptProperties, true);
         $matchWildcard = $this->modx->getOption('matchWildcard', $scriptProperties, true);
