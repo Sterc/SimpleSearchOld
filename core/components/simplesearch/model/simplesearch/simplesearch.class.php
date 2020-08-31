@@ -152,7 +152,7 @@ class SimpleSearch
         $reserved = array('AND', 'OR', 'IN', 'NOT');
         foreach ($this->searchArray as $key => $term) {
             $this->searchArray[$key] = strip_tags($term);
-            if (strlen($term) < $minChars && !in_array($term, $reserved)) {
+            if (strlen($term) < $minChars && in_array($term, $reserved)) {
                 unset($this->searchArray[$key]);
             }
         }
