@@ -144,7 +144,7 @@ class SimpleSearch
      * @return string The parsed and cleansed string.
      */
     public function parseSearchString($str = '') {
-        $minChars = $this->modx->getOption('minChars', $this->config, 4);
+        $minChars = $this->modx->getOption('minChars', $this->config, 3);
 
         $this->searchArray = explode(' ',$str);
         $this->searchArray = $this->modx->sanitize($this->searchArray, $this->modx->sanitizePatterns);
