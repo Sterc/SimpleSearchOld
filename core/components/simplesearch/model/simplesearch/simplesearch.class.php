@@ -144,7 +144,7 @@ class SimpleSearch
      * @return string The parsed and cleansed string.
      */
     public function parseSearchString($str = '') {
-        $minChars = $this->modx->getOption('minChars', $this->config, 4);
+        $minChars = $this->modx->getOption('minChars', $this->config, 3);
 
         $this->searchArray = explode(' ',$str);
         $this->searchArray = $this->modx->sanitize($this->searchArray, $this->modx->sanitizePatterns);
@@ -152,7 +152,7 @@ class SimpleSearch
         $reserved = array('AND', 'OR', 'IN', 'NOT');
         foreach ($this->searchArray as $key => $term) {
             $this->searchArray[$key] = strip_tags($term);
-            if (strlen($term) < $minChars && !in_array($term, $reserved)) {
+            if (iconv_strlen($term) < $minChars && in_array($term, $reserved)) {
                 unset($this->searchArray[$key]);
             }
         }
