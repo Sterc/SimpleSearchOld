@@ -327,7 +327,7 @@ class SimpleSearch
      */
     public function sanitize($text) {
         $text = strip_tags($text);
-        $text = preg_replace('/(\[\[\+.*?\]\])/i', '', $text);
+        $text = preg_replace('/\[[^][]*+(?:(?R)[^][]*)*+]/i', '', $text);
 
         return $this->modx->stripTags($text);
     }
