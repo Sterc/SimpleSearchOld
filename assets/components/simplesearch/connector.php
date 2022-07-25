@@ -1,4 +1,11 @@
 <?php
+
+require_once dirname(dirname(dirname(__DIR__))) . '/config.core.php';
+require_once MODX_CORE_PATH . 'config/' . MODX_CONFIG_KEY . '.inc.php';
+require_once MODX_CONNECTORS_PATH . 'index.php';
+
+use SimpleSearch\SimpleSearch;
+
 $webActions = [
     'web/autosuggestions'
 ];
@@ -6,10 +13,6 @@ $webActions = [
 if (!empty($_REQUEST['action']) && in_array($_REQUEST['action'], $webActions)) {
     define('MODX_REQP', false);
 }
-
-require_once dirname(dirname(dirname(__DIR__))) . '/config.core.php';
-require_once MODX_CORE_PATH . 'config/' . MODX_CONFIG_KEY . '.inc.php';
-require_once MODX_CONNECTORS_PATH . 'index.php';
 
 if (in_array($_REQUEST['action'], $webActions, true)) {
     if ($modx->user->hasSessionContext($modx->context->get('key'))) {
@@ -22,15 +25,7 @@ if (in_array($_REQUEST['action'], $webActions, true)) {
     $_REQUEST['HTTP_MODAUTH'] = $_SERVER['HTTP_MODAUTH'];
 }
 
-$instance = $modx->getService(
-    'simplesearch',
-    'SimpleSearch',
-    $modx->getOption(
-        'simplesearch.core_path',
-        null,
-        $modx->getOption('core_path') . 'components/simplesearch/'
-    ) . 'model/simplesearch/'
-);
+$instance = $modx->services->get('simplesearch');
 if ($instance instanceof SimpleSearch) {
     $modx->request->handleRequest([
         'processors_path' => $instance->config['processors_path'],

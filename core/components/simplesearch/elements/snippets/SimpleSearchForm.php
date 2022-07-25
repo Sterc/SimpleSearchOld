@@ -1,4 +1,5 @@
 <?php
+use SimpleSearch\SimpleSearch;
 /**
  * Show the search form
  *
@@ -6,11 +7,6 @@
  * @var array $scriptProperties
  * @package simplesearch
  */
-require_once $modx->getOption(
-    'simplesearch.core_path',
-    null,
-    $modx->getOption('core_path') . 'components/simplesearch/'
-) . 'model/simplesearch/simplesearch.class.php';
 $search = new SimpleSearch($modx, $scriptProperties);
 
 /* Setup default options. */
@@ -28,7 +24,7 @@ if (empty($scriptProperties['landing'])) {
 }
 
 /* If get value already exists, set it as default. */
-$searchValue  = isset($_REQUEST[$scriptProperties['searchIndex']]) ? $_REQUEST[$scriptProperties['searchIndex']] : '';
+$searchValue  = $_REQUEST[$scriptProperties['searchIndex']] ?? '';
 $searchValues = explode(' ', $searchValue);
 
 array_map(array($modx, 'sanitizeString'), $searchValues);

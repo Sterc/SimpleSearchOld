@@ -1,15 +1,17 @@
 <?php
+use MODX\Revolution\modUser;
+use MODX\Revolution\modUserProfile;
 /**
  * A demo postHook for doing faceted search
  */
-$c = $modx->newQuery('modUser');
-$c->innerJoin('modUserProfile', 'Profile');
+$c = $modx->newQuery(modUser::class);
+$c->innerJoin(modUserProfile::class, 'Profile');
 $c->where(array(
     'username:LIKE'            => '%' . $search . '%',
     'OR:Profile.fullname:LIKE' => '%' . $search . '%',
     'OR:Profile.email:LIKE'    => '%' . $search . '%',
 ));
-$count = $modx->getCount('modUser', $c);
+$count = $modx->getCount(modUser::class, $c);
 $c->select(array(
     'modUser.*',
     'Profile.fullname',
@@ -17,7 +19,7 @@ $c->select(array(
 ));
 $c->limit($limit,$offset);
 
-$users = $modx->getCollection('modUser', $c);
+$users = $modx->getCollection(modUser::class, $c);
 
 $results = array();
 foreach ($users as $user) {

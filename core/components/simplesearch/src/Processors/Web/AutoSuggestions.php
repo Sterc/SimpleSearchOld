@@ -1,14 +1,12 @@
 <?php
+namespace SimpleSearch\Processors\Web;
 
-/**
- * Class SimpleSearchAutoSuggestionsProcessor.
- */
-class SimpleSearchAutoSuggestionsProcessor extends modProcessor
-{
-    /**
-     * @access public
-     * @return mixed
-     */
+use MODX\Revolution\Processors\Processor;
+use MODX\Revolution\modTemplateVar;
+use MODX\Revolution\modTemplateVarResource;
+
+class AutoSuggestions extends Processor {
+
     public function process()
     {
         $suggestions = [];
@@ -28,14 +26,14 @@ class SimpleSearchAutoSuggestionsProcessor extends modProcessor
      * @access protected
      * @return array
      */
-    protected function getSearchSuggestions ()
+    protected function getSearchSuggestions (): array
     {
         $suggestions = [];
 
         $suggestionsTv = $this->modx->getOption('simplesearch.autosuggest_tv', null, 'simpleSearchAutoSuggestions');
 
-        $c = $this->modx->newQuery('modTemplateVarResource');
-        $c->leftJoin('modTemplateVar', 'modTemplateVar', 'tmplvarid = modTemplateVar.id');
+        $c = $this->modx->newQuery(modTemplateVarResource::class);
+        $c->leftJoin(modTemplateVar::class, 'modTemplateVar', 'tmplvarid = modTemplateVar.id');
 
         if (is_numeric($suggestionsTv)) {
             $c->where([
@@ -47,12 +45,10 @@ class SimpleSearchAutoSuggestionsProcessor extends modProcessor
             ]);
         }
 
-        foreach ($this->modx->getCollection('modTemplateVarResource', $c) as $suggestion) {
+        foreach ($this->modx->getCollection(modTemplateVarResource::class, $c) as $suggestion) {
             $suggestions = array_merge($suggestions, array_map('trim', explode(',', $suggestion->get('value'))));
         }
 
         return array_unique($suggestions);
     }
 }
-
-return 'SimpleSearchAutoSuggestionsProcessor';

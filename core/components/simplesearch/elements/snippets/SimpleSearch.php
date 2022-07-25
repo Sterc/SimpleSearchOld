@@ -6,11 +6,8 @@
  * @var array $scriptProperties
  * @package simplesearch
  */
-require_once $modx->getOption(
-    'simplesearch.core_path',
-    null,
-    $modx->getOption('core_path') . 'components/simplesearch/'
-) . 'model/simplesearch/simplesearch.class.php';
+use SimpleSearch\SimpleSearch;
+
 $search = new SimpleSearch($modx, $scriptProperties);
 
 /* Find search index and toplaceholder setting */

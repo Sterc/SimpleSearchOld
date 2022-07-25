@@ -1,0 +1,25 @@
+{
+  "name": "modxcms/simplesearch",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "GPL",
+  "authors": [
+    {
+      "name":"Sterc",
+      "email":"modx@sterc.com"
+    },
+    {
+      "name": "modxcms",
+      "email": "help@modx.com"
+    },
+    {
+      "name": "matdave",
+      "email": "mat@modx.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "SimpleSearch\\": "src/"
+    }
+  }
+}

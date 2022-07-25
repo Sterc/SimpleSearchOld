@@ -1,11 +1,13 @@
 <?php
+namespace SimpleSearch;
 
+use MODX\Revolution\modX;
 /**
  * Base Hooks handling class
  *
  * @package simplesearch
  */
-class siHooks
+class SiHooks
 {
     /**
      * @var array $errors A collection of all the processed errors so far.
@@ -35,16 +37,16 @@ class siHooks
     public $redirectUrl;
 
     public $facets = array();
-    public $currentFacet = 'default';
+    public string $currentFacet = 'default';
+    private array $config;
 
     /**
      * The constructor for the fiHooks class
      *
-     * @param SimpleSearch &$simplesearch A reference to the SimpleSearch class instance.
+     * @param SimpleSearch $search
      * @param array $config Optional. An array of configuration parameters.
-     * @return siHooks
      */
-    function __construct(SimpleSearch &$search, array $config = array()) {
+    function __construct(SimpleSearch $search, array $config = array()) {
         $this->search =& $search;
         $this->modx   =& $search->modx;
         $this->config = array_merge(array(), $config);

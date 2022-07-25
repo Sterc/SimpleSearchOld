@@ -1,29 +1,34 @@
 <?php
+namespace SimpleSearch\Driver;
+
+use MODX\Revolution\modX;
+use MODX\Revolution\modResource;
+use SimpleSearch\SimpleSearch;
 
 /**
  * Abstract class for providing custom search driver implementations.
- * 
+ *
  * @package simplesearch
  */
 abstract class SimpleSearchDriver
 {
     /** @var SimpleSearch A reference to the SimpleSearch class */
-    public $search;
+    public SimpleSearch $search;
     /** @var modX A reference to the modX class */
-    public $modx;
+    public modX $modx;
     /** @var array An array of configuration properties */
     public $config;
     /** @var array An array of search scores. Optionally used. */
-    public $searchScores = array();
+    public array $searchScores = array();
     /** @var array The IDs of the search results */
-    public $ids = array();
+    public array $ids = array();
 
     /**
      * Construct and return the driver object, and run the initialize method.
      * This method may be extended in your driver implementations, but
      * SimpleSearchDriver may not be instantiated by itself - it must
      * be extended.
-     * 
+     *
      * @param SimpleSearch $search
      * @param array $config
      */
@@ -37,7 +42,7 @@ abstract class SimpleSearchDriver
 
     /**
      * Initialize the driver after loading it.
-     * 
+     *
      * @abstract
      * @return void
      */
@@ -98,13 +103,13 @@ abstract class SimpleSearchDriver
         }
 
         /* Score */
-        /** @var modResource $resource */
+        /** @var modResource::class $resource */
         foreach ($resources as $resourceId => $resource) {
             foreach ($docFields as $field) {
                 $potency = (array_key_exists($field, $fieldPotency)) ? (int) $fieldPotency[$field] : 1;
                 foreach ($this->search->searchArray as $term) {
                     $queryTerm       = preg_quote($term,'/');
-                    $regex           = ($searchStyle == 'partial') ? "/{$queryTerm}/i" : "/\b{$queryTerm}\b/i";
+                    $regex           = ($searchStyle === 'partial') ? "/{$queryTerm}/i" : "/\b{$queryTerm}\b/i";
                     $numberOfMatches = preg_match_all($regex, $resource->{$field}, $matches);
 
                     if (empty($this->searchScores[$resourceId])) {
@@ -142,7 +147,7 @@ abstract class SimpleSearchDriver
 
         $list = array();
         foreach ($this->searchScores as $resourceId => $score) {
-            array_push($list, $resources[$resourceId]);
+            $list[] = $resources[$resourceId];
         }
 
         return $list;
@@ -154,30 +159,28 @@ abstract class SimpleSearchDriver
      * @param string $ids The IDs to search
      * @param string $type The type of id filter
      * @param integer $depth The depth in the Resource tree to filter by
-     * @return string Comma delimited string of the IDs
+     * @return array Array of the IDs
      */
-    protected function processIds($ids = '', $type = 'parents', $depth = 10) {
+    protected function processIds(string $ids = '', string $type = 'parents', int $depth = 10): array
+    {
         if ($ids === '') {
-            return '';
+            return [];
         }
 
         $ids = $this->cleanIds($ids);
-        switch ($type) {
-            case 'parents':
-                $idArray = explode(',', $ids);
-                $ids     = $idArray;
+        $idArray = explode(',', $ids);
+        if ($type === 'parents') {
 
-                foreach ($idArray as $id) {
-                    $ids = array_merge($ids, $this->modx->getChildIds($id, $depth));
-                }
+            foreach ($idArray as $id) {
+                $idArray = array_merge($idArray, $this->modx->getChildIds($id, $depth));
+            }
 
-                $ids = array_unique($ids);
+            $idArray = array_unique($idArray);
 
-                sort($ids);
-                break;
+            sort($idArray);
         }
 
-        $this->ids = $ids;
+        $this->ids = $idArray;
 
         return $this->ids;
     }
@@ -188,7 +191,8 @@ abstract class SimpleSearchDriver
      * @param string $ids Comma delimited string of IDs
      * @return string Cleaned comma delimited string of IDs
      */
-    public function cleanIds($ids) {
+    public function cleanIds(string $ids): string
+    {
         return preg_replace(
             array(
                 '`(,)+`',  //Multiple commas

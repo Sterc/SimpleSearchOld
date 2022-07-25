@@ -1,5 +1,11 @@
 <?php
-require_once __DIR__ . '/simplesearchdriver.class.php';
+namespace SimpleSearch\Driver;
+
+use PDO;
+use MODX\Revolution\modResource;
+use MODX\Revolution\modTemplateVar;
+use MODX\Revolution\modTemplateVarResource;
+use xPDO\Om\xPDOQuery;
 
 /**
  * Standard sql-based search driver for SimpleSearch
@@ -8,29 +14,32 @@ require_once __DIR__ . '/simplesearchdriver.class.php';
  */
 class SimpleSearchDriverBasic extends SimpleSearchDriver
 {
-    public $searchString;
+    public string $searchString;
 
-    public function initialize() {
+    public function initialize(): bool
+    {
         return true;
     }
 
-    public function index(array $fields) {
+    public function index(array $fields): bool
+    {
         return true;
     }
 
-    public function removeIndex($id) {
+    public function removeIndex($id): bool
+    {
         return true;
     }
 
     /**
-     * @param string $str
+     * @param string $string
      * @param array $scriptProperties
      * @return array
      */
-    public function search($str, array $scriptProperties = array()) {
+    public function search($string, array $scriptProperties = array()) {
 
-        if (!empty($str)) {
-            $this->searchString = strip_tags($this->modx->sanitizeString($str));
+        if (!empty($string)) {
+            $this->searchString = strip_tags($this->modx->sanitizeString($string));
         }
 
         $ids           = $this->modx->getOption('ids', $scriptProperties, '');
@@ -47,13 +56,13 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
         $includedTVIds = array();
 
 
-        $c = $this->modx->newQuery('modResource');
+        $c = $this->modx->newQuery(modResource::class);
         if ($includeTVs) {
-            $c->leftJoin('modTemplateVarResource', 'TemplateVarResources');
+            $c->leftJoin(modTemplateVarResource::class, 'TemplateVarResources');
             if (!empty($includeTVList)) {
                 $includeTVList = explode(',', $includeTVList);
                 $includeTVList = array_map('trim', $includeTVList);
-                $tv = $this->modx->newQuery('modTemplateVar', [
+                $tv = $this->modx->newQuery(modTemplateVar::class, [
                     'name:IN' => $includeTVList
                 ]);
                 $tv->select('id');
@@ -200,7 +209,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                     $i++;
                 }
             } else {
-                $relevancyTerms[] = $this->modx->quote($str.$wildcard);
+                $relevancyTerms[] = $this->modx->quote($string.$wildcard);
             }
 
             $this->addRelevancyCondition($c,
@@ -224,9 +233,9 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
                 $ids = array_diff($ids, explode(',', $exclude));
             }
 
-            $f = $this->modx->getSelectColumns('modResource', 'modResource', '', array('id'));
+            $f = $this->modx->getSelectColumns(modResource::class, 'modResource', '', array('id'));
 
-            $c->where(array("{$f}:IN" => $ids), xPDOQuery::SQL_AND, null, $whereGroup);
+            $c->where(array("$f:IN" => $ids), xPDOQuery::SQL_AND, null, $whereGroup);
         }
 
         $c->where(array('published:=' => 1), xPDOQuery::SQL_AND, null, $whereGroup);
@@ -235,13 +244,13 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
 
         /* Restrict to either this context or specified contexts */
         $ctx = !empty($this->config['contexts']) ? $this->config['contexts'] : $this->modx->context->get('key');
-        $f   = $this->modx->getSelectColumns('modResource', 'modResource','', array('context_key'));
-        $c->where(array("{$f}:IN" => explode(',', $ctx)), xPDOQuery::SQL_AND, null, $whereGroup);
+        $f   = $this->modx->getSelectColumns(modResource::class, 'modResource','', array('context_key'));
+        $c->where(array("$f:IN" => explode(',', $ctx)), xPDOQuery::SQL_AND, null, $whereGroup);
         if ($hideMenu !== 2) {
             $c->where(array('hidemenu' => $hideMenu === 1));
         }
 
-        $total = $this->modx->getCount('modResource', $c);
+        $total = $this->modx->getCount(modResource::class, $c);
 
         $c->query['distinct'] = 'DISTINCT';
         if (!empty($scriptProperties['sortBy'])) {
@@ -249,7 +258,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
             $sortDirs = explode(',', $sortDir);
             $sortBys  = explode(',', $scriptProperties['sortBy']);
             $dir      = 'desc';
-            for ($i = 0; $i < count($sortBys); $i++) {
+            for ($i = 0, $iMax = count($sortBys); $i < $iMax; $i++) {
                 if (isset($sortDirs[$i])) {
                     $dir = $sortDirs[$i];
                 }
@@ -258,7 +267,7 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
             }
         }
 
-        $resources = $this->modx->getCollection('modResource', $c);
+        $resources = $this->modx->getCollection(modResource::class, $c);
         if (empty($scriptProperties['sortBy'])) {
             $resources = $this->sortResults($resources, $scriptProperties);
         }
@@ -309,14 +318,11 @@ class SimpleSearchDriverBasic extends SimpleSearchDriver
      * add relevancy search criteria to query
      *
      * @param xPDOQuery $query
-     * @param array $options
-     * @param string $options['class'] class name (not currently used but may be needed with custom classes)
-     * @param string $options['fields'] query-ready list of fields to search for the terms
-     * @param array $options['terms'] search terms (will only be one array member if useAllWords parameter is set)
+     * @param array $options ['terms'] search terms (will only be one array member if useAllWords parameter is set)
      * @return boolean
      */
-    public function addRelevancyCondition(&$query, $options) {
-        $class  = $this->modx->getOption('class', $options, 'modResource');
+    public function addRelevancyCondition(xPDOQuery &$query, array $options): bool
+    {
         $fields = $this->modx->getOption('fields', $options, '');
         $terms  = $this->modx->getOption('terms', $options, array());
 

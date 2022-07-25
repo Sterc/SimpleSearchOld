@@ -1,4 +1,9 @@
 .DS_Store
 .idea
+.vscode
+_packages
 
 config.core.php
+/core/components/simplesearch/vendor/
+/.php-cs-fixer.cache
+deploy*.sh
