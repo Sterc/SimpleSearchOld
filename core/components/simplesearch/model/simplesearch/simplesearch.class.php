@@ -458,7 +458,7 @@ class SimpleSearch
         $searchStrings = explode(' ', $this->searchString);
         foreach ($searchStrings as $searchString) {
             $quoteValue = preg_quote($searchString, '/');
-            $string     = preg_replace('/' . $quoteValue . '/i', '<'.$tag.' class="'.$cls.'">$0</'.$tag.'>', $string);
+            $string     = preg_replace('/' . $quoteValue . '/iu', '<'.$tag.' class="'.$cls.'">$0</'.$tag.'>', $string);
         }
 
         return $string;
